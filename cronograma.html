@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cronograma – Visão Gantt</title>
+
+  <!-- PapaParse (CSV) -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    :root{
+      --text:#e6edf7;
+      --muted:#a9b6cc;
+      --line:rgba(255,255,255,.12);
+      --good:#18c37e;
+      --warn:#ffbf3c;
+      --bad:#ff5d5d;
+      --info:#5aa7ff;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:14px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+    }
+
+    body{
+      margin:0;
+      font-family:var(--font);
+      background:linear-gradient(180deg, #070c16 0%, #0b1220 40%, #070c16 100%);
+      color:var(--text);
+    }
+
+    .wrap{ padding:18px; max-width:1400px; margin:0 auto; }
+
+    .topbar{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      flex-wrap:wrap; margin-bottom:14px;
+    }
+    .title{ display:flex; flex-direction:column; gap:2px; }
+    .title h1{ margin:0; font-size:18px; letter-spacing:.2px; font-weight:700; }
+    .title small{ color:var(--muted); font-size:12px; }
+
+    .controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+    .btn, .select, .input{
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:9px 10px;
+      border-radius:10px;
+      font-size:13px;
+      outline:none;
+    }
+    .btn{
+      cursor:pointer;
+      transition:transform .05s ease, background .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ background:rgba(255,255,255,.09); }
+    .btn:active{ transform:translateY(1px); }
+    .btn.primary{ background:rgba(90,167,255,.18); border-color:rgba(90,167,255,.35); }
+    .btn.primary:hover{ background:rgba(90,167,255,.25); }
+
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 10px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .dot{ width:8px;height:8px;border-radius:50%; background:var(--info); }
+
+    .panel{
+      background:linear-gradient(180deg, rgba(15,27,49,.92), rgba(12,22,42,.92));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .grid{ display:grid; grid-template-columns:520px 1fr; min-height:560px; }
+    .left{ border-right:1px solid var(--line); background:rgba(0,0,0,.08); overflow:auto; }
+    .right{ overflow:auto; position:relative; }
+
+    table{ width:100%; border-collapse:collapse; }
+    thead th{
+      position:sticky; top:0; z-index:3;
+      background:rgba(10,18,32,.95);
+      border-bottom:1px solid var(--line);
+      font-weight:600; font-size:12px; color:var(--muted);
+      text-align:left; padding:10px 10px; white-space:nowrap;
+    }
+    tbody td{
+      border-bottom:1px solid rgba(255,255,255,.06);
+      font-size:12.5px; padding:9px 10px; vertical-align:middle;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px;
+    }
+    tbody tr:hover td{ background:rgba(90,167,255,.08); }
+
+    .wbs{ font-variant-numeric:tabular-nums; color:var(--muted); width:52px; }
+    .activity{ max-width:250px; }
+    .status{ width:110px; font-weight:600; }
+    .status .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.05);
+    }
+    .badge .bDot{ width:8px;height:8px;border-radius:50%; }
+    .badge.good .bDot{ background:var(--good); }
+    .badge.warn .bDot{ background:var(--warn); }
+    .badge.bad  .bDot{ background:var(--bad); }
+
+    .pct{ width:90px; font-variant-numeric:tabular-nums; }
+    .date{ width:95px; font-variant-numeric:tabular-nums; color:var(--muted); }
+    .res{ max-width:180px; color:var(--muted); }
+
+    .ganttWrap{ position:relative; min-height:560px; }
+    .ganttHeader{
+      position:sticky; top:0; z-index:4;
+      background:rgba(10,18,32,.95);
+      border-bottom:1px solid var(--line);
+    }
+    .ganttHeader .months{ display:flex; border-bottom:1px solid rgba(255,255,255,.08); }
+    .ganttHeader .days{ display:flex; }
+    .cell{
+      flex:0 0 auto; border-right:1px solid rgba(255,255,255,.06);
+      padding:8px 6px; font-size:12px; color:var(--muted);
+      text-align:center; user-select:none;
+    }
+    .cell.month{ font-weight:600; color:var(--text); background:rgba(255,255,255,.03); }
+    .ganttBody{ position:relative; }
+    .ganttRow{ position:relative; height:35px; border-bottom:1px solid rgba(255,255,255,.06); }
+    .ganttRow:hover{ background:rgba(90,167,255,.08); }
+    .vline{ position:absolute; top:0; bottom:0; width:1px; background:rgba(255,255,255,.06); }
+    .bar{
+      position:absolute; top:9px; height:17px; border-radius:999px;
+      background:rgba(90,167,255,.35);
+      border:1px solid rgba(90,167,255,.45);
+      overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,.25);
+    }
+    .bar .done{ height:100%; width:0%; background:rgba(24,195,126,.55); }
+    .bar.late{ border-color:rgba(255,93,93,.55); background:rgba(255,93,93,.22); }
+    .milestone{
+      position:absolute; top:7px; width:20px; height:20px; transform:rotate(45deg);
+      background:rgba(90,167,255,.38);
+      border:1px solid rgba(90,167,255,.55);
+      border-radius:4px; box-shadow:0 4px 14px rgba(0,0,0,.25);
+    }
+
+    .footer{
+      margin-top:10px; color:var(--muted); font-size:12px;
+      display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    .link{
+      color:#a9c8ff; text-decoration:none;
+      border-bottom:1px dotted rgba(169,200,255,.55);
+    }
+    .link:hover{ border-bottom-style:solid; }
+
+    .banner{
+      margin-top:10px;
+      background:rgba(255,191,60,.12);
+      border:1px solid rgba(255,191,60,.25);
+      color:rgba(255,255,255,.92);
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:12.5px;
+      display:none;
+      line-height:1.35;
+    }
+    .banner strong{ color:#ffd27a; }
+
+    @media (max-width:1100px){
+      .grid{ grid-template-columns:1fr; }
+      .left{ border-right:none; border-bottom:1px solid var(--line); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        <h1>Cronograma do Projeto (Visão tipo MS Project)</h1>
+        <small>Gantt + Grade | Produção (CSV publicado)</small>
+      </div>
+
+      <div class="controls">
+        <input id="search" class="input" style="width:240px" placeholder="Buscar atividade, status, recurso..." />
+        <select id="filterStatus" class="select">
+          <option value="">Todos os status</option>
+          <option value="Concluída">Concluída</option>
+          <option value="Atrasada">Atrasada</option>
+          <option value="Em andamento">Em andamento</option>
+          <option value="Não iniciada">Não iniciada</option>
+        </select>
+        <select id="zoom" class="select">
+          <option value="day">Zoom: Dia</option>
+          <option value="week">Zoom: Semana</option>
+        </select>
+        <button id="reload" class="btn primary">Recarregar dados</button>
+        <span class="pill"><span class="dot"></span><span id="kpi">Inicializando...</span></span>
+      </div>
+    </div>
+
+    <div id="banner" class="banner"></div>
+
+    <div class="panel">
+      <div class="grid">
+        <div class="left">
+          <table>
+            <thead>
+              <tr>
+                <th class="wbs">WBS</th>
+                <th>Atividade</th>
+                <th class="status">Status</th>
+                <th class="pct">% Concluída</th>
+                <th class="date">Início</th>
+                <th class="date">Término</th>
+                <th>Recursos</th>
+              </tr>
+            </thead>
+            <tbody id="gridBody"></tbody>
+          </table>
+        </div>
+
+        <div class="right">
+          <div class="ganttWrap">
+            <div id="ganttHeader" class="ganttHeader"></div>
+            <div id="ganttBody" class="ganttBody"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>
+        Pasta do projeto:
+        <a id="folderLink" class="link" target="_blank" rel="noopener">Abrir no Drive</a>
+        &nbsp;|&nbsp; Fonte de dados:
+        <a id="dataLink" class="link" target="_blank" rel="noopener">Abrir CSV publicado</a>
+      </div>
+      <div id="meta"></div>
+    </div>
+  </div>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO (PRODUÇÃO)
+   ============================================================ */
+const DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1djCug4BgGpqOjbGmsqFQIwO8BN6w-ZGG";
+const PUBLISHED_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vThtKDovGj-ADJfpxmf-wzGnIV9EunqDjx065wpvXgcSDaHgUhbNnVft72hIE9O0x64_LBx8u13Q9IU/pub?output=csv";
+
+/* ============================================================
+   UTILITÁRIOS
+   ============================================================ */
+function showBanner(html){
+  const el = document.getElementById("banner");
+  el.style.display = "block";
+  el.innerHTML = html;
+}
+function hideBanner(){
+  const el = document.getElementById("banner");
+  el.style.display = "none";
+  el.innerHTML = "";
+}
+
+function parseDateBR(s){
+  if(s instanceof Date && !isNaN(s)) return s;
+  if(typeof s === "number"){
+    const d = new Date(Date.UTC(1899,11,30));
+    d.setUTCDate(d.getUTCDate() + Math.floor(s));
+    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  }
+  if(typeof s !== "string") return null;
+  const t = s.trim();
+  if(!t) return null;
+  const cleaned = t.replace(/^(Seg|Ter|Qua|Qui|Sex|Sáb|Sab|Dom)\s+/i, "");
+  let m = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+  if(m){
+    let dd=parseInt(m[1],10), mm=parseInt(m[2],10)-1, yy=parseInt(m[3],10);
+    if(yy<100) yy+=2000;
+    const d = new Date(yy,mm,dd);
+    return isNaN(d)?null:d;
+  }
+  m = cleaned.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m){
+    const d=new Date(parseInt(m[1],10),parseInt(m[2],10)-1,parseInt(m[3],10));
+    return isNaN(d)?null:d;
+  }
+  const d = new Date(cleaned);
+  return isNaN(d)?null:d;
+}
+
+function fmtDate(d){
+  if(!d) return "";
+  const dd=String(d.getDate()).padStart(2,"0");
+  const mm=String(d.getMonth()+1).padStart(2,"0");
+  const yy=String(d.getFullYear()).slice(-2);
+  return `${dd}/${mm}/${yy}`;
+}
+
+function normPct(v){
+  if(v==null) return 0;
+  if(typeof v === "number") return (v<=1 ? v*100 : v);
+  const s=String(v).trim().replace(",",".");
+  const m=s.match(/([\d.]+)/);
+  if(!m) return 0;
+  const n=parseFloat(m[1]);
+  return (s.includes("%") ? n : (n<=1 ? n*100 : n));
+}
+
+function statusClass(s){
+  const t=(s||"").toLowerCase();
+  if(t.includes("conclu")) return "good";
+  if(t.includes("atras")) return "bad";
+  if(t.includes("andam")) return "warn";
+  if(t.includes("não")||t.includes("nao")) return "warn";
+  return "warn";
+}
+
+function inferStatus(row){
+  const pct=row.pct;
+  const now=new Date();
+  if(pct>=99.5) return "Concluída";
+  if(row.finish && row.finish<now && pct<99.5) return "Atrasada";
+  if(row.start && row.start<=now && pct>0 && pct<99.5) return "Em andamento";
+  return "Não iniciada";
+}
+
+function normalizeHeader(h){
+  return String(h||"")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/\s+/g," ");
+}
+
+const HEADER_ALIASES = {
+  wbs: ["wbs","id","codigo","código","#"],
+  activity: ["atividade","nome","tarefa","task"],
+  start: ["inicio","início","start","data inicio","data início"],
+  finish: ["termino","término","finish","data termino","data término"],
+  pct: ["% concluida","% concluída","%concluida","%concluída","percent","percentual","%"],
+  status: ["status","situação","situacao"],
+  resources: ["nomes dos recursos","recursos","resource names","responsavel","responsável"]
+};
+
+function mapColumns(headers){
+  const norm = headers.map(normalizeHeader);
+  const pick = (aliases) => {
+    for(const a of aliases){
+      const idx = norm.indexOf(normalizeHeader(a));
+      if(idx>=0) return idx;
+    }
+    return -1;
+  };
+  const idx = {
+    wbs: pick(HEADER_ALIASES.wbs),
+    activity: pick(HEADER_ALIASES.activity),
+    start: pick(HEADER_ALIASES.start),
+    finish: pick(HEADER_ALIASES.finish),
+    pct: pick(HEADER_ALIASES.pct),
+    status: pick(HEADER_ALIASES.status),
+    resources: pick(HEADER_ALIASES.resources)
+  };
+  if(idx.activity<0 || idx.start<0 || idx.finish<0){
+    throw new Error("Cabeçalho incompatível. Preciso de Atividade, Início e Término (ou aliases).");
+  }
+  return idx;
+}
+
+/* ============================================================
+   STATE + RENDER
+   ============================================================ */
+let STATE = { allTasks: [], viewTasks: [], zoom:"day" };
+
+function applyFilters(){
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const fs=document.getElementById("filterStatus").value;
+  STATE.viewTasks = STATE.allTasks.filter(t=>{
+    const hay=`${t.wbs} ${t.activity} ${t.status} ${t.resources}`.toLowerCase();
+    const okQ=!q || hay.includes(q);
+    const okS=!fs || t.status===fs;
+    return okQ && okS;
+  });
+}
+
+function renderGrid(){
+  const tb=document.getElementById("gridBody");
+  tb.innerHTML="";
+  for(const t of STATE.viewTasks){
+    const tr=document.createElement("tr");
+
+    const tdW=document.createElement("td"); tdW.className="wbs"; tdW.textContent=t.wbs;
+    const tdA=document.createElement("td"); tdA.className="activity"; tdA.title=t.activity; tdA.textContent=t.activity;
+
+    const tdS=document.createElement("td"); tdS.className="status";
+    const cls=statusClass(t.status);
+    tdS.innerHTML=`<span class="badge ${cls}"><span class="bDot"></span><span>${t.status}</span></span>`;
+
+    const tdP=document.createElement("td"); tdP.className="pct"; tdP.textContent=`${Math.round(t.pct)}%`;
+    const tdI=document.createElement("td"); tdI.className="date"; tdI.textContent=fmtDate(t.start);
+    const tdF=document.createElement("td"); tdF.className="date"; tdF.textContent=fmtDate(t.finish);
+    const tdR=document.createElement("td"); tdR.className="res"; tdR.title=t.resources||""; tdR.textContent=t.resources||"-";
+
+    tr.append(tdW,tdA,tdS,tdP,tdI,tdF,tdR);
+    tr.style.cursor="pointer";
+    tr.addEventListener("click",()=>window.open(DRIVE_FOLDER_URL,"_blank","noopener"));
+    tb.appendChild(tr);
+  }
+}
+
+function getMinMaxDates(tasks){
+  let min=tasks[0].start, max=tasks[0].finish;
+  for(const t of tasks){ if(t.start<min) min=t.start; if(t.finish>max) max=t.finish; }
+  const min2=new Date(min); min2.setDate(min2.getDate()-3);
+  const max2=new Date(max); max2.setDate(max2.getDate()+3);
+  return {min:min2, max:max2};
+}
+function daysBetween(a,b){
+  const MS=24*3600*1000;
+  const da=new Date(a.getFullYear(),a.getMonth(),a.getDate());
+  const db=new Date(b.getFullYear(),b.getMonth(),b.getDate());
+  return Math.round((db-da)/MS);
+}
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function monthLabel(d){
+  const m=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"][d.getMonth()];
+  return `${m}/${String(d.getFullYear()).slice(-2)}`;
+}
+
+function renderGantt(){
+  const header=document.getElementById("ganttHeader");
+  const body=document.getElementById("ganttBody");
+  header.innerHTML=""; body.innerHTML="";
+
+  const tasks=STATE.viewTasks;
+  if(tasks.length===0){
+    header.innerHTML=`<div class="cell" style="padding:14px 10px">Sem itens para exibir (ajuste filtros).</div>`;
+    return;
+  }
+
+  const {min,max}=getMinMaxDates(tasks);
+  const zoom=STATE.zoom;
+  const unitDays=(zoom==="day")?1:7;
+  const totalUnits=Math.ceil((daysBetween(min,max)+1)/unitDays);
+  const unitW=(zoom==="day")?26:52;
+  const totalW=totalUnits*unitW;
+
+  const monthsRow=document.createElement("div");
+  monthsRow.className="months"; monthsRow.style.width=totalW+"px";
+  const daysRow=document.createElement("div");
+  daysRow.className="days"; daysRow.style.width=totalW+"px";
+
+  if(zoom==="day"){
+    let currentMonth=addDays(min,0).getMonth(), span=0, startIndex=0;
+    for(let u=0;u<totalUnits;u++){
+      const d=addDays(min,u);
+      const c=document.createElement("div");
+      c.className="cell"; c.style.width=unitW+"px";
+      c.textContent=String(d.getDate()).padStart(2,"0");
+      daysRow.appendChild(c);
+
+      if(d.getMonth()===currentMonth){ span++; }
+      else{
+        const mcell=document.createElement("div");
+        mcell.className="cell month";
+        mcell.style.width=(span*unitW)+"px";
+        mcell.textContent=monthLabel(addDays(min,startIndex));
+        monthsRow.appendChild(mcell);
+        currentMonth=d.getMonth(); span=1; startIndex=u;
+      }
+    }
+    const mcell=document.createElement("div");
+    mcell.className="cell month";
+    mcell.style.width=(span*unitW)+"px";
+    mcell.textContent=monthLabel(addDays(min,startIndex));
+    monthsRow.appendChild(mcell);
+  } else {
+    let currentMonth=addDays(min,0).getMonth(), span=0, startIndex=0;
+    for(let u=0;u<totalUnits;u++){
+      const weekStart=addDays(min,u*7);
+      const c=document.createElement("div");
+      c.className="cell"; c.style.width=unitW+"px";
+      c.textContent=`S${u+1}`;
+      daysRow.appendChild(c);
+
+      const m=weekStart.getMonth();
+      if(m===currentMonth){ span++; }
+      else{
+        const mcell=document.createElement("div");
+        mcell.className="cell month";
+        mcell.style.width=(span*unitW)+"px";
+        mcell.textContent=monthLabel(addDays(min,startIndex*7));
+        monthsRow.appendChild(mcell);
+        currentMonth=m; span=1; startIndex=u;
+      }
+    }
+    const mcell=document.createElement("div");
+    mcell.className="cell month";
+    mcell.style.width=(span*unitW)+"px";
+    mcell.textContent=monthLabel(addDays(min,startIndex*7));
+    monthsRow.appendChild(mcell);
+  }
+
+  header.appendChild(monthsRow);
+  header.appendChild(daysRow);
+
+  const bodyWrap=document.createElement("div");
+  bodyWrap.style.width=totalW+"px";
+  bodyWrap.style.position="relative";
+
+  for(let u=0;u<=totalUnits;u++){
+    const vl=document.createElement("div");
+    vl.className="vline"; vl.style.left=(u*unitW)+"px";
+    bodyWrap.appendChild(vl);
+  }
+
+  tasks.forEach((t)=>{
+    const row=document.createElement("div");
+    row.className="ganttRow"; row.style.width=totalW+"px";
+
+    const startOffDays=daysBetween(min,t.start);
+    const finishOffDays=daysBetween(min,t.finish);
+
+    let x1=(zoom==="day")?startOffDays:Math.floor(startOffDays/7);
+    let x2=(zoom==="day")?finishOffDays:Math.floor(finishOffDays/7);
+
+    const wUnits=Math.max(1,(x2-x1+1));
+    const left=x1*unitW;
+    const width=wUnits*unitW;
+
+    const isMilestone=daysBetween(t.start,t.finish)===0;
+
+    if(isMilestone){
+      const ms=document.createElement("div");
+      ms.className="milestone";
+      ms.style.left=(left+Math.max(0,(unitW-20)/2))+"px";
+      row.appendChild(ms);
+    } else {
+      const bar=document.createElement("div");
+      bar.className="bar";
+      if((t.status||"").toLowerCase().includes("atras")) bar.classList.add("late");
+      bar.style.left=left+"px";
+      bar.style.width=width+"px";
+
+      const done=document.createElement("div");
+      done.className="done";
+      done.style.width=`${Math.max(0,Math.min(100,t.pct))}%`;
+
+      bar.appendChild(done);
+      row.appendChild(bar);
+    }
+
+    row.title=`${t.activity}\nStatus: ${t.status}\n%: ${Math.round(t.pct)}%\nInício: ${fmtDate(t.start)}\nTérmino: ${fmtDate(t.finish)}\nRecursos: ${t.resources||"-"}`;
+    row.style.cursor="pointer";
+    row.addEventListener("click",()=>window.open(DRIVE_FOLDER_URL,"_blank","noopener"));
+    bodyWrap.appendChild(row);
+  });
+
+  body.appendChild(bodyWrap);
+
+  const total=STATE.allTasks.length;
+  const view=STATE.viewTasks.length;
+  const concl=STATE.allTasks.filter(t=>(t.status||"").toLowerCase().includes("conclu")).length;
+  const atras=STATE.allTasks.filter(t=>(t.status||"").toLowerCase().includes("atras")).length;
+
+  document.getElementById("kpi").textContent=`Itens: ${view}/${total} | Concluídas: ${concl} | Atrasadas: ${atras}`;
+  document.getElementById("meta").textContent=`Período: ${fmtDate(min)} → ${fmtDate(max)} | Zoom: ${zoom==="day"?"Dia":"Semana"}`;
+}
+
+/* ============================================================
+   LOAD (PRODUÇÃO): fetch CSV -> parse -> render
+   ============================================================ */
+async function load(){
+  hideBanner();
+  document.getElementById("kpi").textContent="Carregando...";
+
+  document.getElementById("folderLink").href = DRIVE_FOLDER_URL;
+  document.getElementById("dataLink").href = PUBLISHED_CSV_URL;
+
+  try{
+    const res = await fetch(PUBLISHED_CSV_URL, { cache:"no-store" });
+    const text = await res.text();
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    // Parse CSV (sem heurística de separador: o CSV publicado do Google vem consistente)
+    const parsed = Papa.parse(text, { skipEmptyLines:true });
+    if(!parsed.data || parsed.data.length < 2) throw new Error("CSV sem dados.");
+
+    const headers = parsed.data[0];
+    const idx = mapColumns(headers);
+
+    const tasks = [];
+    for(let i=1;i<parsed.data.length;i++){
+      const r = parsed.data[i];
+
+      const activity = String(r[idx.activity] || "").trim();
+      if(!activity) continue;
+
+      const start = parseDateBR(String(r[idx.start] ?? ""));
+      const finish = parseDateBR(String(r[idx.finish] ?? ""));
+      if(!start || !finish) continue;
+
+      const pct = (idx.pct >= 0) ? normPct(r[idx.pct]) : 0;
+      const status = (idx.status >= 0) ? String(r[idx.status] || "").trim() : "";
+      const resources = (idx.resources >= 0) ? String(r[idx.resources] || "").trim() : "";
+      const wbs = (idx.wbs >= 0) ? String(r[idx.wbs] || "").trim() : String(i);
+
+      const t = {
+        wbs: wbs || String(i),
+        activity,
+        start,
+        finish,
+        pct: isFinite(pct) ? Math.max(0, Math.min(100, pct)) : 0,
+        status: status || "",
+        resources
+      };
+
+      if(!t.status) t.status = inferStatus(t);
+      if(t.finish < t.start){ const tmp=t.start; t.start=t.finish; t.finish=tmp; }
+
+      tasks.push(t);
+    }
+
+    if(tasks.length === 0) throw new Error("Nenhuma linha válida (datas/cabeçalho).");
+
+    STATE.allTasks = tasks;
+    STATE.zoom = document.getElementById("zoom").value;
+
+    applyFilters();
+    renderGrid();
+    renderGantt();
+
+    showBanner(`<strong>Fonte OK:</strong> CSV publicado carregado. Linhas válidas: <b>${tasks.length}</b>.`);
+
+  } catch(e){
+    document.getElementById("kpi").textContent="Falha na leitura.";
+    showBanner(
+      `<strong>Falha ao carregar dados.</strong><br>` +
+      `Motivo: ${String(e.message || e)}<br><br>` +
+      `Ponto crítico: este painel deve rodar em ambiente <b>http/https</b> (produção). ` +
+      `Se abrir via <b>file://</b>, o browser pode bloquear o acesso ao CSV.`
+    );
+  }
+}
+
+/* ============================================================
+   EVENTOS
+   ============================================================ */
+document.getElementById("reload").addEventListener("click", load);
+document.getElementById("search").addEventListener("input", () => { applyFilters(); renderGrid(); renderGantt(); });
+document.getElementById("filterStatus").addEventListener("change", () => { applyFilters(); renderGrid(); renderGantt(); });
+document.getElementById("zoom").addEventListener("change", () => { STATE.zoom=document.getElementById("zoom").value; renderGantt(); });
+
+load();
+</script>
+</body>
+</html>
