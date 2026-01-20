@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Projeto São Mateus – Cronograma (Gantt)</title>
-
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
@@ -14,17 +13,43 @@
       --shadow:0 10px 30px rgba(0,0,0,.35); --radius:14px;
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
     }
-    body{ margin:0; font-family:var(--font); background:linear-gradient(180deg,#070c16 0%,#0b1220 40%,#070c16 100%); color:var(--text); }
-    .wrap{ padding:18px; max-width:1400px; margin:0 auto; }
-    .topbar{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:14px; }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:var(--font);
+      background:linear-gradient(180deg,#070c16 0%,#0b1220 40%,#070c16 100%);
+      color:var(--text);
+      overflow:hidden; /* CRÍTICO: evita barra do body ir para o fim da página */
+    }
+
+    .wrap{ padding:16px; max-width:1600px; margin:0 auto; height:100vh; display:flex; flex-direction:column; gap:10px; }
+
+    .topbar{
+      display:flex; gap:12px; align-items:flex-start; justify-content:space-between;
+      flex-wrap:wrap;
+    }
     .title{ display:flex; flex-direction:column; gap:2px; }
     .title h1{ margin:0; font-size:18px; letter-spacing:.2px; font-weight:700; }
     .title small{ color:var(--muted); font-size:12px; }
-    .controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+      max-width:980px;
+    }
 
     .btn,.select,.input{
-      background:rgba(255,255,255,.06); border:1px solid var(--line); color:var(--text);
-      padding:9px 10px; border-radius:10px; font-size:13px; outline:none;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:9px 10px;
+      border-radius:10px;
+      font-size:13px;
+      outline:none;
+      height:36px;
     }
     .input[type="date"]{ padding:8px 10px; }
     .btn{ cursor:pointer; transition:transform .05s ease, background .15s ease; user-select:none; }
@@ -33,63 +58,116 @@
     .btn.primary{ background:rgba(90,167,255,.18); border-color:rgba(90,167,255,.35); }
     .btn.primary:hover{ background:rgba(90,167,255,.25); }
 
-    .pill{ display:inline-flex; gap:8px; align-items:center; background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:999px; padding:8px 10px; font-size:12px; color:var(--muted); white-space:nowrap; }
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 10px;
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+      height:36px;
+    }
     .dot{ width:8px;height:8px;border-radius:50%; background:var(--info); }
 
-    .banner{ margin-top:10px; background:rgba(255,191,60,.12); border:1px solid rgba(255,191,60,.25); color:rgba(255,255,255,.92); padding:10px 12px; border-radius:12px; font-size:12.5px; display:none; line-height:1.35; }
+    .banner{
+      background:rgba(255,191,60,.12);
+      border:1px solid rgba(255,191,60,.25);
+      color:rgba(255,255,255,.92);
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:12.5px;
+      display:none;
+      line-height:1.35;
+    }
     .banner strong{ color:#ffd27a; }
 
-    .panel{ background:linear-gradient(180deg, rgba(15,27,49,.92), rgba(12,22,42,.92)); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
-    .grid{ display:grid; grid-template-columns:580px 1fr; min-height:560px; }
-    .left{ border-right:1px solid var(--line); background:rgba(0,0,0,.08); overflow:auto; max-height: calc(100vh - 220px); }
-    .right{ overflow:auto; position:relative; max-height: calc(100vh - 220px); }
-
-    /* Scrollbars mais visíveis */
-    .left::-webkit-scrollbar, .right::-webkit-scrollbar, .ganttHScroll::-webkit-scrollbar{ height: 12px; width: 12px; }
-    .left::-webkit-scrollbar-thumb, .right::-webkit-scrollbar-thumb, .ganttHScroll::-webkit-scrollbar-thumb{
-      background: rgba(255,255,255,.18); border-radius: 10px;
-    }
-    .left::-webkit-scrollbar-track, .right::-webkit-scrollbar-track, .ganttHScroll::-webkit-scrollbar-track{
-      background: rgba(255,255,255,.06);
+    .panel{
+      background:linear-gradient(180deg, rgba(15,27,49,.92), rgba(12,22,42,.92));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      flex:1;                 /* CRÍTICO: ocupa o resto da tela */
+      min-height:0;           /* CRÍTICO: permite scroll interno funcionar */
+      display:flex;
+      flex-direction:column;
     }
 
-    /* Barra horizontal fixa (sempre visível) */
-    .ganttHScroll{
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      height: 14px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      background: rgba(10,18,32,.85);
-      border-bottom: 1px solid rgba(255,255,255,.12);
+    .grid{
+      display:grid;
+      grid-template-columns: 600px 1fr;
+      flex:1;
+      min-height:0;          /* CRÍTICO: scroll interno */
     }
-    .ganttHScrollInner{ height: 1px; width: 0px; }
+
+    /* ====== SCROLLBARS VISÍVEIS ====== */
+    .leftPane::-webkit-scrollbar, .ganttViewport::-webkit-scrollbar, .hScrollBar::-webkit-scrollbar{
+      height: 12px; width: 12px;
+    }
+    .leftPane::-webkit-scrollbar-thumb, .ganttViewport::-webkit-scrollbar-thumb, .hScrollBar::-webkit-scrollbar-thumb{
+      background: rgba(255,255,255,.22);
+      border-radius: 10px;
+    }
+    .leftPane::-webkit-scrollbar-track, .ganttViewport::-webkit-scrollbar-track, .hScrollBar::-webkit-scrollbar-track{
+      background: rgba(255,255,255,.07);
+    }
+
+    /* ====== LEFT (GRID) ====== */
+    .leftPane{
+      border-right:1px solid var(--line);
+      background:rgba(0,0,0,.08);
+      overflow:auto;        /* vertical + horizontal se precisar */
+      min-height:0;
+    }
 
     table{ width:100%; border-collapse:collapse; }
-    thead th{ position:sticky; top:0; z-index:3; background:rgba(10,18,32,.95); border-bottom:1px solid var(--line); font-weight:600; font-size:12px; color:var(--muted); text-align:left; padding:10px 10px; white-space:nowrap; }
-    tbody td{ border-bottom:1px solid rgba(255,255,255,.06); font-size:12.5px; padding:9px 10px; vertical-align:middle; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:260px; }
+    thead th{
+      position:sticky; top:0; z-index:5;
+      background:rgba(10,18,32,.96);
+      border-bottom:1px solid var(--line);
+      font-weight:600; font-size:12px; color:var(--muted);
+      text-align:left; padding:10px 10px; white-space:nowrap;
+    }
+    tbody td{
+      border-bottom:1px solid rgba(255,255,255,.06);
+      font-size:12.5px; padding:9px 10px;
+      white-space:nowrap;
+      overflow:hidden; text-overflow:ellipsis;
+      max-width:280px;
+    }
     tbody tr:hover td{ background:rgba(90,167,255,.08); }
 
-    .edt{ font-variant-numeric:tabular-nums; color:var(--muted); width:86px; }
-    .activity{ max-width:320px; }
+    .edt{ font-variant-numeric:tabular-nums; color:var(--muted); width:90px; }
+    .activity{ max-width:330px; }
     .status{ width:120px; font-weight:600; }
-    .status .badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); }
+    .status .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.05);
+    }
     .badge .bDot{ width:8px;height:8px;border-radius:50%; }
     .badge.good .bDot{ background:var(--good); }
     .badge.warn .bDot{ background:var(--warn); }
     .badge.bad  .bDot{ background:var(--bad); }
     .pct{ width:90px; font-variant-numeric:tabular-nums; }
     .date{ width:95px; font-variant-numeric:tabular-nums; color:var(--muted); }
-    .res{ max-width:200px; color:var(--muted); }
+    .res{ max-width:210px; color:var(--muted); }
 
-    /* Tree (EDT) */
+    /* Tree */
     .treeCell{ display:flex; align-items:center; gap:6px; min-width:0; }
-    .indent{ display:inline-block; width:0; flex:0 0 auto; }
+    .indent{ width:0; flex:0 0 auto; display:inline-block; }
     .toggle{
-      width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center;
-      border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06);
-      border-radius:6px; cursor:pointer; user-select:none; flex:0 0 auto;
+      width:16px; height:16px;
+      display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      border-radius:6px;
+      cursor:pointer;
+      user-select:none;
+      flex:0 0 auto;
     }
     .toggle:hover{ background:rgba(255,255,255,.10); }
     .toggle[aria-disabled="true"]{ opacity:.35; cursor:default; }
@@ -97,30 +175,100 @@
     .taskName{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .isParent .taskName{ font-weight:700; letter-spacing:.1px; }
 
-    /* Gantt */
-    .ganttWrap{ position:relative; min-height:560px; }
-    .ganttHeader{ position:sticky; top:14px; z-index:4; background:rgba(10,18,32,.95); border-bottom:1px solid var(--line); }
+    /* ====== RIGHT (GANTT) ====== */
+    .rightPane{
+      position:relative;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden; /* scroll vai ficar no viewport do Gantt */
+    }
+
+    /* Viewport do Gantt: aqui fica o scroll vertical e horizontal real */
+    .ganttViewport{
+      flex:1;
+      min-height:0;
+      overflow:auto; /* CRÍTICO: scroll real do Gantt */
+      position:relative;
+    }
+
+    /* Header do Gantt fica sticky dentro do viewport */
+    .ganttHeader{
+      position:sticky;
+      top:0;
+      z-index:6;
+      background:rgba(10,18,32,.96);
+      border-bottom:1px solid var(--line);
+    }
     .ganttHeader .months{ display:flex; border-bottom:1px solid rgba(255,255,255,.08); }
     .ganttHeader .days{ display:flex; }
-    .cell{ flex:0 0 auto; border-right:1px solid rgba(255,255,255,.06); padding:8px 6px; font-size:12px; color:var(--muted); text-align:center; user-select:none; }
+    .cell{
+      flex:0 0 auto;
+      border-right:1px solid rgba(255,255,255,.06);
+      padding:8px 6px;
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+      user-select:none;
+    }
     .cell.month{ font-weight:600; color:var(--text); background:rgba(255,255,255,.03); }
+
     .ganttBody{ position:relative; }
     .ganttRow{ position:relative; height:35px; border-bottom:1px solid rgba(255,255,255,.06); }
     .ganttRow:hover{ background:rgba(90,167,255,.08); }
     .vline{ position:absolute; top:0; bottom:0; width:1px; background:rgba(255,255,255,.06); }
-    .bar{ position:absolute; top:9px; height:17px; border-radius:999px; background:rgba(90,167,255,.35); border:1px solid rgba(90,167,255,.45); overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,.25); }
+    .bar{
+      position:absolute; top:9px; height:17px; border-radius:999px;
+      background:rgba(90,167,255,.35);
+      border:1px solid rgba(90,167,255,.45);
+      overflow:hidden;
+      box-shadow:0 4px 14px rgba(0,0,0,.25);
+    }
     .bar .done{ height:100%; width:0%; background:rgba(24,195,126,.55); }
     .bar.late{ border-color:rgba(255,93,93,.55); background:rgba(255,93,93,.22); }
-    .milestone{ position:absolute; top:7px; width:20px; height:20px; transform:rotate(45deg); background:rgba(90,167,255,.38); border:1px solid rgba(90,167,255,.55); border-radius:4px; box-shadow:0 4px 14px rgba(0,0,0,.25); }
+    .milestone{
+      position:absolute; top:7px; width:20px; height:20px;
+      transform:rotate(45deg);
+      background:rgba(90,167,255,.38);
+      border:1px solid rgba(90,167,255,.55);
+      border-radius:4px;
+      box-shadow:0 4px 14px rgba(0,0,0,.25);
+    }
 
-    .footer{ margin-top:10px; color:var(--muted); font-size:12px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    /* Barra horizontal SEMPRE visível (sticky bottom), independente do scroll vertical */
+    .hScrollBar{
+      position:sticky;
+      bottom:0;
+      z-index:7;
+      height:14px;
+      overflow-x:auto;
+      overflow-y:hidden;
+      background:rgba(10,18,32,.90);
+      border-top:1px solid rgba(255,255,255,.12);
+    }
+    .hScrollInner{ height:1px; width:0px; }
+
+    .footer{
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      padding:10px 12px;
+      border-top:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.08);
+    }
     .link{ color:#a9c8ff; text-decoration:none; border-bottom:1px dotted rgba(169,200,255,.55); }
     .link:hover{ border-bottom-style:solid; }
 
     @media (max-width:1100px){
+      body{ overflow:auto; } /* em mobile, melhor permitir body scroll */
+      .wrap{ height:auto; }
+      .panel{ flex:none; }
       .grid{ grid-template-columns:1fr; }
-      .left{ border-right:none; border-bottom:1px solid var(--line); }
-      .ganttHeader{ top:14px; }
+      .leftPane{ border-right:none; border-bottom:1px solid var(--line); max-height:48vh; }
+      .rightPane{ max-height:48vh; }
     }
   </style>
 </head>
@@ -130,13 +278,13 @@
   <div class="topbar">
     <div class="title">
       <h1>Projeto São Mateus – Cronograma</h1>
-      <small>Visão tipo MS Project | Expandir/Recolher por EDT | Filtros: Período, %, Recursos</small>
+      <small>Visão tipo MS Project | EDT (pai/filho) | Scrollbars responsivos | Filtros por período, %, recursos</small>
     </div>
 
     <div class="controls">
       <input id="search" class="input" style="width:240px" placeholder="Buscar atividade, status, recurso..." />
 
-      <select id="filterStatus" class="select">
+      <select id="filterStatus" class="select" title="Filtrar por status">
         <option value="">Todos os status</option>
         <option value="Concluída">Concluída</option>
         <option value="Atrasada">Atrasada</option>
@@ -152,15 +300,15 @@
 
       <input id="resFilter" class="input" placeholder="Filtrar por recurso..." style="width:200px" />
 
-      <select id="zoom" class="select">
+      <select id="zoom" class="select" title="Zoom do Gantt">
         <option value="day">Zoom: Dia</option>
         <option value="week">Zoom: Semana</option>
       </select>
 
-      <button id="expandAll" class="btn">Expandir tudo</button>
-      <button id="collapseAll" class="btn">Recolher tudo</button>
-      <button id="clearFilters" class="btn">Limpar filtros</button>
-      <button id="reload" class="btn primary">Recarregar</button>
+      <button id="expandAll" class="btn" title="Expandir todas as tarefas pai">Expandir tudo</button>
+      <button id="collapseAll" class="btn" title="Recolher todas as tarefas pai">Recolher tudo</button>
+      <button id="clearFilters" class="btn" title="Limpar filtros">Limpar filtros</button>
+      <button id="reload" class="btn primary" title="Recarregar do CSV">Recarregar</button>
 
       <span class="pill"><span class="dot"></span><span id="kpi">Carregando...</span></span>
     </div>
@@ -170,7 +318,7 @@
 
   <div class="panel">
     <div class="grid">
-      <div class="left" id="leftPane">
+      <div class="leftPane" id="leftPane">
         <table>
           <thead>
             <tr>
@@ -187,26 +335,26 @@
         </table>
       </div>
 
-      <div class="right" id="rightPane">
-        <!-- Barra de rolagem horizontal fixa (sempre visível) -->
-        <div class="ganttHScroll" id="ganttHScroll"><div class="ganttHScrollInner" id="ganttHScrollInner"></div></div>
-
-        <div class="ganttWrap">
+      <div class="rightPane" id="rightPane">
+        <div class="ganttViewport" id="ganttViewport">
           <div id="ganttHeader" class="ganttHeader"></div>
           <div id="ganttBody" class="ganttBody"></div>
         </div>
+
+        <!-- Barra horizontal sticky SEMPRE visível dentro do painel -->
+        <div class="hScrollBar" id="hScrollBar"><div class="hScrollInner" id="hScrollInner"></div></div>
       </div>
     </div>
-  </div>
 
-  <div class="footer">
-    <div>
-      Pasta do projeto:
-      <a id="folderLink" class="link" target="_blank" rel="noopener">Abrir no Drive</a>
-      &nbsp;|&nbsp; Fonte de dados:
-      <a id="dataLink" class="link" target="_blank" rel="noopener">Abrir CSV</a>
+    <div class="footer">
+      <div>
+        Pasta do projeto:
+        <a id="folderLink" class="link" target="_blank" rel="noopener">Abrir no Drive</a>
+        &nbsp;|&nbsp; Fonte de dados:
+        <a id="dataLink" class="link" target="_blank" rel="noopener">Abrir CSV</a>
+      </div>
+      <div id="meta"></div>
     </div>
-    <div id="meta"></div>
   </div>
 </div>
 
@@ -220,7 +368,20 @@ const EDT_FALLBACK_COL_INDEX = 1; // coluna B (0-based)
 function showBanner(html){ const el=document.getElementById("banner"); el.style.display="block"; el.innerHTML=html; }
 function hideBanner(){ const el=document.getElementById("banner"); el.style.display="none"; el.innerHTML=""; }
 
-/* ================= Parsing helpers ================= */
+/* ================= Helpers ================= */
+function normalizeHeader(h){
+  return String(h||"").trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/\s+/g," ");
+}
+function indexOfHeader(headers, aliases){
+  const norm = headers.map(normalizeHeader);
+  for(const a of aliases){
+    const idx = norm.indexOf(normalizeHeader(a));
+    if(idx>=0) return idx;
+  }
+  return -1;
+}
 function parseDateBR(s){
   if(s instanceof Date && !isNaN(s)) return s;
   if(typeof s === "number"){
@@ -285,23 +446,8 @@ function inferStatus(row){
   if(row.start && row.start<=now && pct>0 && pct<99.5) return "Em andamento";
   return "Não iniciada";
 }
-function normalizeHeader(h){
-  return String(h||"")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-    .replace(/\s+/g," ");
-}
-function indexOfHeader(headers, aliases){
-  const norm = headers.map(normalizeHeader);
-  for(const a of aliases){
-    const idx = norm.indexOf(normalizeHeader(a));
-    if(idx>=0) return idx;
-  }
-  return -1;
-}
 
-/* ================= Column mapping (EDT prioritário; fallback coluna B) ================= */
+/* ================= Column mapping ================= */
 const ALIASES = {
   edt: ["edt","eap","wbs","outline","estrutura","estrutura analitica","estrutura analítica"],
   activity: ["atividade","nome","tarefa","task"],
@@ -311,7 +457,6 @@ const ALIASES = {
   status: ["status","situação","situacao"],
   resources: ["nomes dos recursos","recursos","resource names","responsavel","responsável"]
 };
-
 function mapColumns(headers){
   const idx = {
     edt: indexOfHeader(headers, ALIASES.edt),
@@ -348,7 +493,6 @@ function edtSortKey(edt){
     return Number.isFinite(n) ? String(n).padStart(6,"0") : ("zzzzzz"+x);
   }).join(".");
 }
-
 function buildTree(tasks){
   const byEdt = new Map();
   tasks.forEach(t=>{
@@ -379,10 +523,8 @@ function buildTree(tasks){
 
   const roots = tasks.filter(t=>!t.parentEdt).map(t=>t._edt);
   roots.sort((a,b)=> edtSortKey(a).localeCompare(edtSortKey(b)));
-
   return { byEdt, roots };
 }
-
 function computeVisible(tree){
   const visible=[];
   const {byEdt, roots}=tree;
@@ -402,6 +544,7 @@ function computeVisible(tree){
 /* ================= STATE ================= */
 let STATE = { allTasks: [], tree: null, visibleTasks: [], filteredTasks: [], zoom:"day" };
 
+/* ================= Filters ================= */
 function applyFilters(){
   const q = document.getElementById("search").value.trim().toLowerCase();
   const fs = document.getElementById("filterStatus").value;
@@ -426,6 +569,7 @@ function applyFilters(){
     const okPmin = (pctMin === null) || (p >= pctMin);
     const okPmax = (pctMax === null) || (p <= pctMax);
 
+    // Interseção do período:
     const sISO = toISODate(t.start);
     const fISO = toISODate(t.finish);
     const okD1 = !dtStart || (fISO >= dtStart);
@@ -434,7 +578,6 @@ function applyFilters(){
     return okQ && okS && okR && okPmin && okPmax && okD1 && okD2;
   });
 }
-
 function refreshView(){
   if(!STATE.tree) return;
   STATE.visibleTasks = computeVisible(STATE.tree);
@@ -443,7 +586,7 @@ function refreshView(){
   renderGantt();
 }
 
-/* ================= GRID ================= */
+/* ================= Grid render ================= */
 function renderGrid(){
   const tb=document.getElementById("gridBody");
   tb.innerHTML="";
@@ -515,13 +658,11 @@ function renderGrid(){
 
     tr.append(tdE,tdA,tdS,tdP,tdI,tdF,tdR);
 
-    tr.style.cursor="pointer";
-    tr.addEventListener("click",()=>window.open(DRIVE_FOLDER_URL,"_blank","noopener"));
     tb.appendChild(tr);
   }
 }
 
-/* ================= GANTT ================= */
+/* ================= Gantt render ================= */
 function getMinMaxDates(tasks){
   let min=tasks[0].start, max=tasks[0].finish;
   for(const t of tasks){ if(t.start<min) min=t.start; if(t.finish>max) max=t.finish; }
@@ -541,35 +682,47 @@ function monthLabel(d){
   return `${m}/${String(d.getFullYear()).slice(-2)}`;
 }
 
-/* Scroll sync */
-function setupHorizontalScrollSync(totalWidthPx){
-  const h = document.getElementById("ganttHScroll");
-  const inner = document.getElementById("ganttHScrollInner");
-  const right = document.getElementById("rightPane");
-  if(!h || !inner || !right) return;
-  inner.style.width = totalWidthPx + "px";
-
-  // Evita loop
-  let lock=false;
-  h.onscroll = () => { if(lock) return; lock=true; right.scrollLeft = h.scrollLeft; lock=false; };
-  right.addEventListener("scroll", () => { if(lock) return; lock=true; h.scrollLeft = right.scrollLeft; lock=false; }, { passive:true });
-}
-
-function setupVerticalScrollSync(){
+/* ===== Scroll sync (horizontal + vertical) ===== */
+function setupScrollSync(totalWidthPx){
   const left = document.getElementById("leftPane");
-  const right = document.getElementById("rightPane");
-  if(!left || !right) return;
-  let lock=false;
+  const gv = document.getElementById("ganttViewport");
+  const hs = document.getElementById("hScrollBar");
+  const inner = document.getElementById("hScrollInner");
 
-  left.addEventListener("scroll", () => {
-    if(lock) return;
-    lock=true; right.scrollTop = left.scrollTop; lock=false;
-  }, { passive:true });
+  if(!left || !gv || !hs || !inner) return;
 
-  right.addEventListener("scroll", () => {
-    if(lock) return;
-    lock=true; left.scrollTop = right.scrollTop; lock=false;
-  }, { passive:true });
+  inner.style.width = Math.max(0, totalWidthPx) + "px";
+
+  let lockV=false;
+  let lockH=false;
+
+  // Vertical sync
+  left.onscroll = () => {
+    if(lockV) return;
+    lockV = true;
+    gv.scrollTop = left.scrollTop;
+    lockV = false;
+  };
+  gv.onscroll = () => {
+    if(!lockV){
+      lockV = true;
+      left.scrollTop = gv.scrollTop;
+      lockV = false;
+    }
+    // Horizontal: manter barra sticky alinhada
+    if(lockH) return;
+    lockH = true;
+    hs.scrollLeft = gv.scrollLeft;
+    lockH = false;
+  };
+
+  // Horizontal sync
+  hs.onscroll = () => {
+    if(lockH) return;
+    lockH = true;
+    gv.scrollLeft = hs.scrollLeft;
+    lockH = false;
+  };
 }
 
 function renderGantt(){
@@ -580,7 +733,7 @@ function renderGantt(){
   const tasks=STATE.filteredTasks;
   if(tasks.length===0){
     header.innerHTML=`<div class="cell" style="padding:14px 10px">Sem itens para exibir (ajuste filtros/expansão).</div>`;
-    setupHorizontalScrollSync(0);
+    setupScrollSync(0);
     return;
   }
 
@@ -604,6 +757,7 @@ function renderGantt(){
       c.className="cell"; c.style.width=unitW+"px";
       c.textContent=String(d.getDate()).padStart(2,"0");
       daysRow.appendChild(c);
+
       if(d.getMonth()===currentMonth){ span++; }
       else{
         const mcell=document.createElement("div");
@@ -627,6 +781,7 @@ function renderGantt(){
       c.className="cell"; c.style.width=unitW+"px";
       c.textContent=`S${u+1}`;
       daysRow.appendChild(c);
+
       const m=weekStart.getMonth();
       if(m===currentMonth){ span++; }
       else{
@@ -694,14 +849,11 @@ function renderGantt(){
     }
 
     row.title=`${t.activity}\nEDT: ${t.edt}\nStatus: ${t.status}\n%: ${Math.round(t.pct)}%\nInício: ${fmtDate(t.start)}\nTérmino: ${fmtDate(t.finish)}\nRecursos: ${t.resources||"-"}`;
-    row.style.cursor="pointer";
-    row.addEventListener("click",()=>window.open(DRIVE_FOLDER_URL,"_blank","noopener"));
     bodyWrap.appendChild(row);
   });
 
   body.appendChild(bodyWrap);
 
-  // KPIs + meta
   const totalAll = STATE.allTasks.length;
   const totalVisible = STATE.visibleTasks.length;
   const totalFiltered = STATE.filteredTasks.length;
@@ -714,11 +866,10 @@ function renderGantt(){
   document.getElementById("meta").textContent =
     `Período: ${fmtDate(min)} → ${fmtDate(max)} | Zoom: ${zoom==="day"?"Dia":"Semana"}`;
 
-  // sincroniza a barra horizontal fixa com a largura do Gantt
-  setupHorizontalScrollSync(totalW);
+  setupScrollSync(totalW);
 }
 
-/* ================= Expand / Collapse all ================= */
+/* ================= Actions ================= */
 function expandAll(){
   if(!STATE.tree) return;
   for(const t of STATE.allTasks){ if(t.hasChildren) t.isCollapsed=false; }
@@ -727,6 +878,16 @@ function expandAll(){
 function collapseAll(){
   if(!STATE.tree) return;
   for(const t of STATE.allTasks){ if(t.hasChildren) t.isCollapsed=true; }
+  refreshView();
+}
+function clearFilters(){
+  document.getElementById("search").value = "";
+  document.getElementById("filterStatus").value = "";
+  document.getElementById("dtStart").value = "";
+  document.getElementById("dtEnd").value = "";
+  document.getElementById("pctMin").value = "";
+  document.getElementById("pctMax").value = "";
+  document.getElementById("resFilter").value = "";
   refreshView();
 }
 
@@ -767,7 +928,15 @@ async function load(){
       const status = (idx.status >= 0) ? String(r[idx.status] || "").trim() : "";
       const resources = (idx.resources >= 0) ? String(r[idx.resources] || "").trim() : "";
 
-      const t = { edt, activity, start, finish, pct: isFinite(pct) ? Math.max(0, Math.min(100, pct)) : 0, status: status || "", resources };
+      const t = {
+        edt,
+        activity,
+        start,
+        finish,
+        pct: isFinite(pct) ? Math.max(0, Math.min(100, pct)) : 0,
+        status: status || "",
+        resources
+      };
 
       if(!t.status) t.status = inferStatus(t);
       if(t.finish < t.start){ const tmp=t.start; t.start=t.finish; t.finish=tmp; }
@@ -783,7 +952,6 @@ async function load(){
     STATE.zoom = document.getElementById("zoom").value;
 
     STATE.tree = buildTree(STATE.allTasks);
-
     refreshView();
 
     showBanner(`<strong>Fonte OK:</strong> CSV carregado. Linhas válidas: <b>${tasks.length}</b>.`);
@@ -792,86 +960,6 @@ async function load(){
     document.getElementById("kpi").textContent="Falha na leitura.";
     showBanner(`<strong>Falha ao carregar dados.</strong><br>Motivo: ${String(e.message || e)}`);
   }
-}
-
-/* ================= Tree build helpers (inlined) ================= */
-function edtParts(edt){
-  const s = String(edt||"").trim();
-  if(!s) return [];
-  return s.split(".").map(x=>x.trim()).filter(Boolean);
-}
-function edtLevel(edt){ return Math.max(1, edtParts(edt).length); }
-function edtParent(edt){
-  const p = edtParts(edt);
-  if(p.length<=1) return null;
-  return p.slice(0,p.length-1).join(".");
-}
-function edtSortKey(edt){
-  const parts = edtParts(edt);
-  return parts.map(x=>{
-    const n = parseInt(x,10);
-    return Number.isFinite(n) ? String(n).padStart(6,"0") : ("zzzzzz"+x);
-  }).join(".");
-}
-function buildTree(tasks){
-  const byEdt = new Map();
-  tasks.forEach(t=>{
-    t._edt = String(t.edt||"").trim();
-    t.level = edtLevel(t._edt);
-    t.parentEdt = edtParent(t._edt);
-    t.children = [];
-    t.hasChildren = false;
-    t.isCollapsed = false;
-    byEdt.set(t._edt, t);
-  });
-
-  tasks.forEach(t=>{
-    if(t.parentEdt && byEdt.has(t.parentEdt)){
-      const p = byEdt.get(t.parentEdt);
-      p.children.push(t._edt);
-      p.hasChildren = true;
-    } else {
-      t.parentEdt = null;
-    }
-  });
-
-  tasks.forEach(t=>{
-    if(t.hasChildren){
-      t.children.sort((a,b)=> edtSortKey(a).localeCompare(edtSortKey(b)));
-    }
-  });
-
-  const roots = tasks.filter(t=>!t.parentEdt).map(t=>t._edt);
-  roots.sort((a,b)=> edtSortKey(a).localeCompare(edtSortKey(b)));
-
-  return { byEdt, roots };
-}
-function computeVisible(tree){
-  const visible=[];
-  const {byEdt, roots}=tree;
-  function dfs(edt){
-    const node=byEdt.get(edt);
-    if(!node) return;
-    visible.push(node);
-    if(node.hasChildren && node.isCollapsed) return;
-    if(node.hasChildren){
-      for(const c of node.children) dfs(c);
-    }
-  }
-  for(const r of roots) dfs(r);
-  return visible;
-}
-
-/* ================= Clear filters ================= */
-function clearFilters(){
-  document.getElementById("search").value = "";
-  document.getElementById("filterStatus").value = "";
-  document.getElementById("dtStart").value = "";
-  document.getElementById("dtEnd").value = "";
-  document.getElementById("pctMin").value = "";
-  document.getElementById("pctMax").value = "";
-  document.getElementById("resFilter").value = "";
-  refreshView();
 }
 
 /* ================= Events ================= */
@@ -884,13 +972,14 @@ document.getElementById("pctMin").addEventListener("input", refreshView);
 document.getElementById("pctMax").addEventListener("input", refreshView);
 document.getElementById("resFilter").addEventListener("input", refreshView);
 
-document.getElementById("zoom").addEventListener("change", () => { STATE.zoom=document.getElementById("zoom").value; renderGantt(); });
+document.getElementById("zoom").addEventListener("change", () => {
+  STATE.zoom = document.getElementById("zoom").value;
+  renderGantt();
+});
+
 document.getElementById("expandAll").addEventListener("click", expandAll);
 document.getElementById("collapseAll").addEventListener("click", collapseAll);
 document.getElementById("clearFilters").addEventListener("click", clearFilters);
-
-/* Sync vertical scroll between left and right */
-setupVerticalScrollSync();
 
 /* Boot */
 load();
