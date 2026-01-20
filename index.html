@@ -9,15 +9,9 @@
 
   <style>
     :root{
-      --text:#e6edf7;
-      --muted:#a9b6cc;
-      --line:rgba(255,255,255,.12);
-      --good:#18c37e;
-      --warn:#ffbf3c;
-      --bad:#ff5d5d;
-      --info:#5aa7ff;
-      --shadow:0 10px 30px rgba(0,0,0,.35);
-      --radius:14px;
+      --text:#e6edf7; --muted:#a9b6cc; --line:rgba(255,255,255,.12);
+      --good:#18c37e; --warn:#ffbf3c; --bad:#ff5d5d; --info:#5aa7ff;
+      --shadow:0 10px 30px rgba(0,0,0,.35); --radius:14px;
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
     }
     body{ margin:0; font-family:var(--font); background:linear-gradient(180deg,#070c16 0%,#0b1220 40%,#070c16 100%); color:var(--text); }
@@ -29,13 +23,8 @@
     .controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
     .btn,.select,.input{
-      background:rgba(255,255,255,.06);
-      border:1px solid var(--line);
-      color:var(--text);
-      padding:9px 10px;
-      border-radius:10px;
-      font-size:13px;
-      outline:none;
+      background:rgba(255,255,255,.06); border:1px solid var(--line); color:var(--text);
+      padding:9px 10px; border-radius:10px; font-size:13px; outline:none;
     }
     .btn{ cursor:pointer; transition:transform .05s ease, background .15s ease; user-select:none; }
     .btn:hover{ background:rgba(255,255,255,.09); }
@@ -50,17 +39,17 @@
     .banner strong{ color:#ffd27a; }
 
     .panel{ background:linear-gradient(180deg, rgba(15,27,49,.92), rgba(12,22,42,.92)); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
-    .grid{ display:grid; grid-template-columns:520px 1fr; min-height:560px; }
+    .grid{ display:grid; grid-template-columns:560px 1fr; min-height:560px; }
     .left{ border-right:1px solid var(--line); background:rgba(0,0,0,.08); overflow:auto; }
     .right{ overflow:auto; position:relative; }
 
     table{ width:100%; border-collapse:collapse; }
     thead th{ position:sticky; top:0; z-index:3; background:rgba(10,18,32,.95); border-bottom:1px solid var(--line); font-weight:600; font-size:12px; color:var(--muted); text-align:left; padding:10px 10px; white-space:nowrap; }
-    tbody td{ border-bottom:1px solid rgba(255,255,255,.06); font-size:12.5px; padding:9px 10px; vertical-align:middle; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px; }
+    tbody td{ border-bottom:1px solid rgba(255,255,255,.06); font-size:12.5px; padding:9px 10px; vertical-align:middle; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:260px; }
     tbody tr:hover td{ background:rgba(90,167,255,.08); }
 
-    .edt{ font-variant-numeric:tabular-nums; color:var(--muted); width:85px; }
-    .activity{ max-width:260px; }
+    .edt{ font-variant-numeric:tabular-nums; color:var(--muted); width:86px; }
+    .activity{ max-width:300px; }
     .status{ width:120px; font-weight:600; }
     .status .badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); }
     .badge .bDot{ width:8px;height:8px;border-radius:50%; }
@@ -71,8 +60,9 @@
     .date{ width:95px; font-variant-numeric:tabular-nums; color:var(--muted); }
     .res{ max-width:180px; color:var(--muted); }
 
-    /* Tree (por EDT) */
+    /* Tree (EDT) */
     .treeCell{ display:flex; align-items:center; gap:6px; min-width:0; }
+    .indent{ display:inline-block; width:0; flex:0 0 auto; }
     .toggle{
       width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center;
       border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06);
@@ -81,7 +71,6 @@
     .toggle:hover{ background:rgba(255,255,255,.10); }
     .toggle[aria-disabled="true"]{ opacity:.35; cursor:default; }
     .toggle .chev{ font-size:11px; line-height:1; transform:translateY(-.5px); }
-    .indent{ display:inline-block; width:0; flex:0 0 auto; }
     .taskName{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .isParent .taskName{ font-weight:700; letter-spacing:.1px; }
 
@@ -113,78 +102,79 @@
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="title">
-        <h1>Projeto São Mateus – Cronograma</h1>
-        <small>Visão tipo MS Project | Expandir/Recolher por EDT | Fonte: Google Sheets (CSV publicado)</small>
-      </div>
-
-      <div class="controls">
-        <input id="search" class="input" style="width:240px" placeholder="Buscar atividade, status, recurso..." />
-        <select id="filterStatus" class="select">
-          <option value="">Todos os status</option>
-          <option value="Concluída">Concluída</option>
-          <option value="Atrasada">Atrasada</option>
-          <option value="Em andamento">Em andamento</option>
-          <option value="Não iniciada">Não iniciada</option>
-        </select>
-        <select id="zoom" class="select">
-          <option value="day">Zoom: Dia</option>
-          <option value="week">Zoom: Semana</option>
-        </select>
-        <button id="expandAll" class="btn">Expandir tudo</button>
-        <button id="collapseAll" class="btn">Recolher tudo</button>
-        <button id="reload" class="btn primary">Recarregar</button>
-        <span class="pill"><span class="dot"></span><span id="kpi">Carregando...</span></span>
-      </div>
+<div class="wrap">
+  <div class="topbar">
+    <div class="title">
+      <h1>Projeto São Mateus – Cronograma</h1>
+      <small>Visão tipo MS Project | Expandir/Recolher por EDT (coluna B)</small>
     </div>
 
-    <div id="banner" class="banner"></div>
-
-    <div class="panel">
-      <div class="grid">
-        <div class="left">
-          <table>
-            <thead>
-              <tr>
-                <th class="edt">EDT</th>
-                <th>Atividade</th>
-                <th class="status">Status</th>
-                <th class="pct">% Concluída</th>
-                <th class="date">Início</th>
-                <th class="date">Término</th>
-                <th>Recursos</th>
-              </tr>
-            </thead>
-            <tbody id="gridBody"></tbody>
-          </table>
-        </div>
-
-        <div class="right">
-          <div class="ganttWrap">
-            <div id="ganttHeader" class="ganttHeader"></div>
-            <div id="ganttBody" class="ganttBody"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer">
-      <div>
-        Pasta do projeto:
-        <a id="folderLink" class="link" target="_blank" rel="noopener">Abrir no Drive</a>
-        &nbsp;|&nbsp; Fonte de dados:
-        <a id="dataLink" class="link" target="_blank" rel="noopener">Abrir CSV</a>
-      </div>
-      <div id="meta"></div>
+    <div class="controls">
+      <input id="search" class="input" style="width:240px" placeholder="Buscar atividade, status, recurso..." />
+      <select id="filterStatus" class="select">
+        <option value="">Todos os status</option>
+        <option value="Concluída">Concluída</option>
+        <option value="Atrasada">Atrasada</option>
+        <option value="Em andamento">Em andamento</option>
+        <option value="Não iniciada">Não iniciada</option>
+      </select>
+      <select id="zoom" class="select">
+        <option value="day">Zoom: Dia</option>
+        <option value="week">Zoom: Semana</option>
+      </select>
+      <button id="expandAll" class="btn">Expandir tudo</button>
+      <button id="collapseAll" class="btn">Recolher tudo</button>
+      <button id="reload" class="btn primary">Recarregar</button>
+      <span class="pill"><span class="dot"></span><span id="kpi">Carregando...</span></span>
     </div>
   </div>
+
+  <div id="banner" class="banner"></div>
+
+  <div class="panel">
+    <div class="grid">
+      <div class="left">
+        <table>
+          <thead>
+            <tr>
+              <th class="edt">EDT</th>
+              <th>Atividade</th>
+              <th class="status">Status</th>
+              <th class="pct">% Concluída</th>
+              <th class="date">Início</th>
+              <th class="date">Término</th>
+              <th>Recursos</th>
+            </tr>
+          </thead>
+          <tbody id="gridBody"></tbody>
+        </table>
+      </div>
+
+      <div class="right">
+        <div class="ganttWrap">
+          <div id="ganttHeader" class="ganttHeader"></div>
+          <div id="ganttBody" class="ganttBody"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>
+      Pasta do projeto:
+      <a id="folderLink" class="link" target="_blank" rel="noopener">Abrir no Drive</a>
+      &nbsp;|&nbsp; Fonte de dados:
+      <a id="dataLink" class="link" target="_blank" rel="noopener">Abrir CSV</a>
+    </div>
+    <div id="meta"></div>
+  </div>
+</div>
 
 <script>
 /* ================= CONFIG ================= */
 const DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1djCug4BgGpqOjbGmsqFQIwO8BN6w-ZGG";
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vThtKDovGj-ADJfpxmf-wzGnIV9EunqDjx065wpvXgcSDaHgUhbNnVft72hIE9O0x64_LBx8u13Q9IU/pub?output=csv";
+const EDT_FALLBACK_COL_INDEX = 1; // coluna B (0-based)
 
 /* ================= UI ================= */
 function showBanner(html){ const el=document.getElementById("banner"); el.style.display="block"; el.innerHTML=html; }
@@ -256,46 +246,49 @@ function normalizeHeader(h){
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
     .replace(/\s+/g," ");
 }
+function indexOfHeader(headers, aliases){
+  const norm = headers.map(normalizeHeader);
+  for(const a of aliases){
+    const idx = norm.indexOf(normalizeHeader(a));
+    if(idx>=0) return idx;
+  }
+  return -1;
+}
 
-/* ================= Column mapping (EDT é obrigatório) ================= */
-const HEADER_ALIASES = {
-  edt: ["edt","wbs","eap","outline","estrutura","estrutura analitica","estrutura analítica"],
+/* ================= Column mapping (EDT prioritário; fallback coluna B) ================= */
+const ALIASES = {
+  edt: ["edt","eap","wbs","outline","estrutura","estrutura analitica","estrutura analítica"],
   activity: ["atividade","nome","tarefa","task"],
   start: ["inicio","início","start","data inicio","data início"],
   finish: ["termino","término","finish","data termino","data término"],
-  pct: ["% concluida","% concluída","%concluida","%concluída","% concluida ","percent","percentual","%"],
+  pct: ["% concluida","% concluída","%concluida","%concluída","percent","percentual","%"],
   status: ["status","situação","situacao"],
   resources: ["nomes dos recursos","recursos","resource names","responsavel","responsável"]
 };
 
 function mapColumns(headers){
-  const norm = headers.map(normalizeHeader);
-  const pick = (aliases) => {
-    for(const a of aliases){
-      const idx = norm.indexOf(normalizeHeader(a));
-      if(idx>=0) return idx;
-    }
-    return -1;
-  };
   const idx = {
-    edt: pick(HEADER_ALIASES.edt),
-    activity: pick(HEADER_ALIASES.activity),
-    start: pick(HEADER_ALIASES.start),
-    finish: pick(HEADER_ALIASES.finish),
-    pct: pick(HEADER_ALIASES.pct),
-    status: pick(HEADER_ALIASES.status),
-    resources: pick(HEADER_ALIASES.resources)
+    edt: indexOfHeader(headers, ALIASES.edt),
+    activity: indexOfHeader(headers, ALIASES.activity),
+    start: indexOfHeader(headers, ALIASES.start),
+    finish: indexOfHeader(headers, ALIASES.finish),
+    pct: indexOfHeader(headers, ALIASES.pct),
+    status: indexOfHeader(headers, ALIASES.status),
+    resources: indexOfHeader(headers, ALIASES.resources)
   };
-  if(idx.edt<0) throw new Error("Coluna EDT não encontrada no CSV.");
-  if(idx.activity<0 || idx.start<0 || idx.finish<0){
-    throw new Error("Colunas mínimas não encontradas (Atividade, Início, Término).");
+
+  // EDT obrigatório: se não achou pelo header, força coluna B
+  if(idx.edt < 0) idx.edt = EDT_FALLBACK_COL_INDEX;
+
+  if(idx.activity < 0 || idx.start < 0 || idx.finish < 0){
+    throw new Error("Colunas mínimas não encontradas (Atividade, Início, Término). Verifique os cabeçalhos do CSV.");
   }
   return idx;
 }
 
 /* ================= EDT Tree helpers ================= */
 function edtParts(edt){
-  const s = String(edt || "").trim();
+  const s = String(edt||"").trim();
   if(!s) return [];
   return s.split(".").map(x=>x.trim()).filter(Boolean);
 }
@@ -376,15 +369,11 @@ let STATE = {
 function applyFilters(){
   const q=document.getElementById("search").value.trim().toLowerCase();
   const fs=document.getElementById("filterStatus").value;
-
   STATE.filteredTasks = STATE.visibleTasks.filter(t=>{
     const hay=`${t.edt} ${t.activity} ${t.status} ${t.resources}`.toLowerCase();
-    const okQ=!q || hay.includes(q);
-    const okS=!fs || t.status===fs;
-    return okQ && okS;
+    return (!q || hay.includes(q)) && (!fs || t.status===fs);
   });
 }
-
 function refreshView(){
   if(!STATE.tree) return;
   STATE.visibleTasks = computeVisible(STATE.tree);
@@ -438,9 +427,7 @@ function renderGrid(){
     name.className="taskName";
     name.textContent=t.activity;
 
-    cell.appendChild(indent);
-    cell.appendChild(toggle);
-    cell.appendChild(name);
+    cell.append(indent, toggle, name);
     tdA.appendChild(cell);
 
     const tdS=document.createElement("td");
@@ -466,7 +453,6 @@ function renderGrid(){
     tdR.textContent=t.resources||"-";
 
     tr.append(tdE,tdA,tdS,tdP,tdI,tdF,tdR);
-
     tr.style.cursor="pointer";
     tr.addEventListener("click",()=>window.open(DRIVE_FOLDER_URL,"_blank","noopener"));
 
@@ -566,8 +552,7 @@ function renderGantt(){
     monthsRow.appendChild(mcell);
   }
 
-  header.appendChild(monthsRow);
-  header.appendChild(daysRow);
+  header.append(monthsRow, daysRow);
 
   const bodyWrap=document.createElement("div");
   bodyWrap.style.width=totalW+"px";
@@ -645,7 +630,7 @@ function expandAll(){
 function collapseAll(){
   if(!STATE.tree) return;
   for(const t of STATE.allTasks){ if(t.hasChildren) t.isCollapsed=true; }
-  refreshView(); // padrão: mostra apenas nível raiz
+  refreshView();
 }
 
 /* ================= Load CSV ================= */
@@ -685,15 +670,7 @@ async function load(){
       const status = (idx.status >= 0) ? String(r[idx.status] || "").trim() : "";
       const resources = (idx.resources >= 0) ? String(r[idx.resources] || "").trim() : "";
 
-      const t = {
-        edt,
-        activity,
-        start,
-        finish,
-        pct: isFinite(pct) ? Math.max(0, Math.min(100, pct)) : 0,
-        status: status || "",
-        resources
-      };
+      const t = { edt, activity, start, finish, pct: isFinite(pct) ? Math.max(0, Math.min(100, pct)) : 0, status: status || "", resources };
 
       if(!t.status) t.status = inferStatus(t);
       if(t.finish < t.start){ const tmp=t.start; t.start=t.finish; t.finish=tmp; }
@@ -710,12 +687,10 @@ async function load(){
 
     STATE.tree = buildTree(STATE.allTasks);
 
-    // Padrão executivo: começa recolhido (mostra raízes). Se quiser começar expandido, comente a linha abaixo.
-    // collapseAll();
-    STATE.visibleTasks = computeVisible(STATE.tree);
-    applyFilters();
-    renderGrid();
-    renderGantt();
+    // Padrão: tudo expandido. Se quiser abrir “executivo” (só nível 1), descomente:
+    // collapseAll(); return;
+
+    refreshView();
 
     showBanner(`<strong>Fonte OK:</strong> CSV carregado. Linhas válidas: <b>${tasks.length}</b>.`);
 
