@@ -20,17 +20,9 @@
       --radius:14px;
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
     }
-    body{
-      margin:0;
-      font-family:var(--font);
-      background:linear-gradient(180deg, #070c16 0%, #0b1220 40%, #070c16 100%);
-      color:var(--text);
-    }
+    body{ margin:0; font-family:var(--font); background:linear-gradient(180deg,#070c16 0%,#0b1220 40%,#070c16 100%); color:var(--text); }
     .wrap{ padding:18px; max-width:1400px; margin:0 auto; }
-    .topbar{
-      display:flex; gap:12px; align-items:center; justify-content:space-between;
-      flex-wrap:wrap; margin-bottom:14px;
-    }
+    .topbar{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:14px; }
     .title{ display:flex; flex-direction:column; gap:2px; }
     .title h1{ margin:0; font-size:18px; letter-spacing:.2px; font-weight:700; }
     .title small{ color:var(--muted); font-size:12px; }
@@ -51,165 +43,65 @@
     .btn.primary{ background:rgba(90,167,255,.18); border-color:rgba(90,167,255,.35); }
     .btn.primary:hover{ background:rgba(90,167,255,.25); }
 
-    .pill{
-      display:inline-flex; gap:8px; align-items:center;
-      background:rgba(255,255,255,.06);
-      border:1px solid var(--line);
-      border-radius:999px;
-      padding:8px 10px;
-      font-size:12px;
-      color:var(--muted);
-      white-space:nowrap;
-    }
+    .pill{ display:inline-flex; gap:8px; align-items:center; background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:999px; padding:8px 10px; font-size:12px; color:var(--muted); white-space:nowrap; }
     .dot{ width:8px;height:8px;border-radius:50%; background:var(--info); }
 
-    .banner{
-      margin-top:10px;
-      background:rgba(255,191,60,.12);
-      border:1px solid rgba(255,191,60,.25);
-      color:rgba(255,255,255,.92);
-      padding:10px 12px;
-      border-radius:12px;
-      font-size:12.5px;
-      display:none;
-      line-height:1.35;
-    }
+    .banner{ margin-top:10px; background:rgba(255,191,60,.12); border:1px solid rgba(255,191,60,.25); color:rgba(255,255,255,.92); padding:10px 12px; border-radius:12px; font-size:12.5px; display:none; line-height:1.35; }
     .banner strong{ color:#ffd27a; }
 
-    .panel{
-      background:linear-gradient(180deg, rgba(15,27,49,.92), rgba(12,22,42,.92));
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
+    .panel{ background:linear-gradient(180deg, rgba(15,27,49,.92), rgba(12,22,42,.92)); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
     .grid{ display:grid; grid-template-columns:520px 1fr; min-height:560px; }
     .left{ border-right:1px solid var(--line); background:rgba(0,0,0,.08); overflow:auto; }
     .right{ overflow:auto; position:relative; }
 
     table{ width:100%; border-collapse:collapse; }
-    thead th{
-      position:sticky; top:0; z-index:3;
-      background:rgba(10,18,32,.95);
-      border-bottom:1px solid var(--line);
-      font-weight:600; font-size:12px; color:var(--muted);
-      text-align:left; padding:10px 10px; white-space:nowrap;
-    }
-    tbody td{
-      border-bottom:1px solid rgba(255,255,255,.06);
-      font-size:12.5px; padding:9px 10px; vertical-align:middle;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px;
-    }
+    thead th{ position:sticky; top:0; z-index:3; background:rgba(10,18,32,.95); border-bottom:1px solid var(--line); font-weight:600; font-size:12px; color:var(--muted); text-align:left; padding:10px 10px; white-space:nowrap; }
+    tbody td{ border-bottom:1px solid rgba(255,255,255,.06); font-size:12.5px; padding:9px 10px; vertical-align:middle; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px; }
     tbody tr:hover td{ background:rgba(90,167,255,.08); }
 
-    .wbs{ font-variant-numeric:tabular-nums; color:var(--muted); width:72px; }
+    .edt{ font-variant-numeric:tabular-nums; color:var(--muted); width:85px; }
     .activity{ max-width:260px; }
     .status{ width:120px; font-weight:600; }
-    .status .badge{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:4px 8px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.05);
-    }
+    .status .badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); }
     .badge .bDot{ width:8px;height:8px;border-radius:50%; }
     .badge.good .bDot{ background:var(--good); }
     .badge.warn .bDot{ background:var(--warn); }
     .badge.bad  .bDot{ background:var(--bad); }
-
     .pct{ width:90px; font-variant-numeric:tabular-nums; }
     .date{ width:95px; font-variant-numeric:tabular-nums; color:var(--muted); }
     .res{ max-width:180px; color:var(--muted); }
 
-    /* WBS Tree (pai/filho) */
-    .treeCell{
-      display:flex;
-      align-items:center;
-      gap:6px;
-      min-width:0;
-    }
+    /* Tree (por EDT) */
+    .treeCell{ display:flex; align-items:center; gap:6px; min-width:0; }
     .toggle{
-      width:16px;
-      height:16px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.06);
-      border-radius:6px;
-      cursor:pointer;
-      user-select:none;
-      flex:0 0 auto;
+      width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06);
+      border-radius:6px; cursor:pointer; user-select:none; flex:0 0 auto;
     }
     .toggle:hover{ background:rgba(255,255,255,.10); }
-    .toggle[aria-disabled="true"]{
-      opacity:.35;
-      cursor:default;
-    }
-    .toggle .chev{
-      font-size:11px;
-      line-height:1;
-      transform:translateY(-.5px);
-    }
-    .indent{
-      display:inline-block;
-      width:0;
-      flex:0 0 auto;
-    }
-    .taskName{
-      min-width:0;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-    .isParent .taskName{
-      font-weight:700;
-      letter-spacing:.1px;
-    }
+    .toggle[aria-disabled="true"]{ opacity:.35; cursor:default; }
+    .toggle .chev{ font-size:11px; line-height:1; transform:translateY(-.5px); }
+    .indent{ display:inline-block; width:0; flex:0 0 auto; }
+    .taskName{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .isParent .taskName{ font-weight:700; letter-spacing:.1px; }
 
+    /* Gantt */
     .ganttWrap{ position:relative; min-height:560px; }
-    .ganttHeader{
-      position:sticky; top:0; z-index:4;
-      background:rgba(10,18,32,.95);
-      border-bottom:1px solid var(--line);
-    }
+    .ganttHeader{ position:sticky; top:0; z-index:4; background:rgba(10,18,32,.95); border-bottom:1px solid var(--line); }
     .ganttHeader .months{ display:flex; border-bottom:1px solid rgba(255,255,255,.08); }
     .ganttHeader .days{ display:flex; }
-    .cell{
-      flex:0 0 auto;
-      border-right:1px solid rgba(255,255,255,.06);
-      padding:8px 6px;
-      font-size:12px;
-      color:var(--muted);
-      text-align:center;
-      user-select:none;
-    }
+    .cell{ flex:0 0 auto; border-right:1px solid rgba(255,255,255,.06); padding:8px 6px; font-size:12px; color:var(--muted); text-align:center; user-select:none; }
     .cell.month{ font-weight:600; color:var(--text); background:rgba(255,255,255,.03); }
     .ganttBody{ position:relative; }
     .ganttRow{ position:relative; height:35px; border-bottom:1px solid rgba(255,255,255,.06); }
     .ganttRow:hover{ background:rgba(90,167,255,.08); }
     .vline{ position:absolute; top:0; bottom:0; width:1px; background:rgba(255,255,255,.06); }
-    .bar{
-      position:absolute; top:9px; height:17px; border-radius:999px;
-      background:rgba(90,167,255,.35);
-      border:1px solid rgba(90,167,255,.45);
-      overflow:hidden;
-      box-shadow:0 4px 14px rgba(0,0,0,.25);
-    }
+    .bar{ position:absolute; top:9px; height:17px; border-radius:999px; background:rgba(90,167,255,.35); border:1px solid rgba(90,167,255,.45); overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,.25); }
     .bar .done{ height:100%; width:0%; background:rgba(24,195,126,.55); }
     .bar.late{ border-color:rgba(255,93,93,.55); background:rgba(255,93,93,.22); }
-    .milestone{
-      position:absolute; top:7px; width:20px; height:20px;
-      transform:rotate(45deg);
-      background:rgba(90,167,255,.38);
-      border:1px solid rgba(90,167,255,.55);
-      border-radius:4px;
-      box-shadow:0 4px 14px rgba(0,0,0,.25);
-    }
+    .milestone{ position:absolute; top:7px; width:20px; height:20px; transform:rotate(45deg); background:rgba(90,167,255,.38); border:1px solid rgba(90,167,255,.55); border-radius:4px; box-shadow:0 4px 14px rgba(0,0,0,.25); }
 
-    .footer{
-      margin-top:10px; color:var(--muted); font-size:12px;
-      display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
-    }
+    .footer{ margin-top:10px; color:var(--muted); font-size:12px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
     .link{ color:#a9c8ff; text-decoration:none; border-bottom:1px dotted rgba(169,200,255,.55); }
     .link:hover{ border-bottom-style:solid; }
 
@@ -225,7 +117,7 @@
     <div class="topbar">
       <div class="title">
         <h1>Projeto São Mateus – Cronograma</h1>
-        <small>Visão tipo MS Project | Gantt + Grade | Fonte: Google Sheets (CSV publicado)</small>
+        <small>Visão tipo MS Project | Expandir/Recolher por EDT | Fonte: Google Sheets (CSV publicado)</small>
       </div>
 
       <div class="controls">
@@ -256,7 +148,7 @@
           <table>
             <thead>
               <tr>
-                <th class="wbs">WBS</th>
+                <th class="edt">EDT</th>
                 <th>Atividade</th>
                 <th class="status">Status</th>
                 <th class="pct">% Concluída</th>
@@ -290,29 +182,15 @@
   </div>
 
 <script>
-/* ============================================================
-   CONFIGURAÇÃO
-   ============================================================ */
+/* ================= CONFIG ================= */
 const DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1djCug4BgGpqOjbGmsqFQIwO8BN6w-ZGG";
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vThtKDovGj-ADJfpxmf-wzGnIV9EunqDjx065wpvXgcSDaHgUhbNnVft72hIE9O0x64_LBx8u13Q9IU/pub?output=csv";
 
-/* ============================================================
-   UI helpers
-   ============================================================ */
-function showBanner(html){
-  const el = document.getElementById("banner");
-  el.style.display = "block";
-  el.innerHTML = html;
-}
-function hideBanner(){
-  const el = document.getElementById("banner");
-  el.style.display = "none";
-  el.innerHTML = "";
-}
+/* ================= UI ================= */
+function showBanner(html){ const el=document.getElementById("banner"); el.style.display="block"; el.innerHTML=html; }
+function hideBanner(){ const el=document.getElementById("banner"); el.style.display="none"; el.innerHTML=""; }
 
-/* ============================================================
-   Parsing helpers
-   ============================================================ */
+/* ================= Parsing helpers ================= */
 function parseDateBR(s){
   if(s instanceof Date && !isNaN(s)) return s;
   if(typeof s === "number"){
@@ -339,7 +217,6 @@ function parseDateBR(s){
   const d = new Date(cleaned);
   return isNaN(d)?null:d;
 }
-
 function fmtDate(d){
   if(!d) return "";
   const dd=String(d.getDate()).padStart(2,"0");
@@ -347,7 +224,6 @@ function fmtDate(d){
   const yy=String(d.getFullYear()).slice(-2);
   return `${dd}/${mm}/${yy}`;
 }
-
 function normPct(v){
   if(v==null) return 0;
   if(typeof v === "number") return (v<=1 ? v*100 : v);
@@ -357,7 +233,6 @@ function normPct(v){
   const n=parseFloat(m[1]);
   return (s.includes("%") ? n : (n<=1 ? n*100 : n));
 }
-
 function statusClass(s){
   const t=(s||"").toLowerCase();
   if(t.includes("conclu")) return "good";
@@ -366,7 +241,6 @@ function statusClass(s){
   if(t.includes("não")||t.includes("nao")) return "warn";
   return "warn";
 }
-
 function inferStatus(row){
   const pct=row.pct;
   const now=new Date();
@@ -375,7 +249,6 @@ function inferStatus(row){
   if(row.start && row.start<=now && pct>0 && pct<99.5) return "Em andamento";
   return "Não iniciada";
 }
-
 function normalizeHeader(h){
   return String(h||"")
     .trim()
@@ -384,12 +257,13 @@ function normalizeHeader(h){
     .replace(/\s+/g," ");
 }
 
+/* ================= Column mapping (EDT é obrigatório) ================= */
 const HEADER_ALIASES = {
-  wbs: ["wbs","id","codigo","código","#"],
+  edt: ["edt","wbs","eap","outline","estrutura","estrutura analitica","estrutura analítica"],
   activity: ["atividade","nome","tarefa","task"],
   start: ["inicio","início","start","data inicio","data início"],
   finish: ["termino","término","finish","data termino","data término"],
-  pct: ["% concluida","% concluída","%concluida","%concluída","percent","percentual","%"],
+  pct: ["% concluida","% concluída","%concluida","%concluída","% concluida ","percent","percentual","%"],
   status: ["status","situação","situacao"],
   resources: ["nomes dos recursos","recursos","resource names","responsavel","responsável"]
 };
@@ -404,7 +278,7 @@ function mapColumns(headers){
     return -1;
   };
   const idx = {
-    wbs: pick(HEADER_ALIASES.wbs),
+    edt: pick(HEADER_ALIASES.edt),
     activity: pick(HEADER_ALIASES.activity),
     start: pick(HEADER_ALIASES.start),
     finish: pick(HEADER_ALIASES.finish),
@@ -412,85 +286,75 @@ function mapColumns(headers){
     status: pick(HEADER_ALIASES.status),
     resources: pick(HEADER_ALIASES.resources)
   };
+  if(idx.edt<0) throw new Error("Coluna EDT não encontrada no CSV.");
   if(idx.activity<0 || idx.start<0 || idx.finish<0){
-    throw new Error("Cabeçalho incompatível. Preciso de Atividade, Início e Término (ou aliases).");
+    throw new Error("Colunas mínimas não encontradas (Atividade, Início, Término).");
   }
   return idx;
 }
 
-/* ============================================================
-   WBS Tree: build hierarchy (pai/filho)
-   - Premissa: WBS com pontos (ex: 2, 2.1, 2.1.1).
-   - Se não houver pontos, mantém plano (level=1).
-   ============================================================ */
-function wbsParts(wbs){
-  const s = String(wbs || "").trim();
+/* ================= EDT Tree helpers ================= */
+function edtParts(edt){
+  const s = String(edt || "").trim();
   if(!s) return [];
-  // aceita "2.1.3" / "2-1-3" / "2 1 3" como fallback
-  const norm = s.replace(/[-\s]+/g, ".");
-  return norm.split(".").map(x => x.trim()).filter(Boolean);
+  return s.split(".").map(x=>x.trim()).filter(Boolean);
 }
-function wbsLevel(wbs){ return Math.max(1, wbsParts(wbs).length); }
-function wbsParent(wbs){
-  const p = wbsParts(wbs);
-  if(p.length <= 1) return null;
-  return p.slice(0, p.length-1).join(".");
+function edtLevel(edt){ return Math.max(1, edtParts(edt).length); }
+function edtParent(edt){
+  const p = edtParts(edt);
+  if(p.length<=1) return null;
+  return p.slice(0,p.length-1).join(".");
 }
-function wbsSortKey(wbs){
-  const parts = wbsParts(wbs);
-  return parts.map(x => {
+function edtSortKey(edt){
+  const parts = edtParts(edt);
+  return parts.map(x=>{
     const n = parseInt(x,10);
     return Number.isFinite(n) ? String(n).padStart(6,"0") : ("zzzzzz"+x);
   }).join(".");
 }
 
 function buildTree(tasks){
-  const byWbs = new Map();
-  tasks.forEach(t => {
-    t._wbs = String(t.wbs || "").trim();
-    t._parts = wbsParts(t._wbs);
-    t.level = wbsLevel(t._wbs);
-    t.parentWbs = wbsParent(t._wbs);
+  const byEdt = new Map();
+  tasks.forEach(t=>{
+    t._edt = String(t.edt||"").trim();
+    t.level = edtLevel(t._edt);
+    t.parentEdt = edtParent(t._edt);
     t.children = [];
     t.hasChildren = false;
     t.isCollapsed = false;
-    byWbs.set(t._wbs, t);
+    byEdt.set(t._edt, t);
   });
 
-  // liga pai/filho quando pai existe no dataset
-  tasks.forEach(t => {
-    if(t.parentWbs && byWbs.has(t.parentWbs)){
-      const p = byWbs.get(t.parentWbs);
-      p.children.push(t._wbs);
+  tasks.forEach(t=>{
+    if(t.parentEdt && byEdt.has(t.parentEdt)){
+      const p = byEdt.get(t.parentEdt);
+      p.children.push(t._edt);
       p.hasChildren = true;
     } else {
-      t.parentWbs = null; // raiz
+      t.parentEdt = null;
     }
   });
 
-  // ordena filhos por WBS
-  tasks.forEach(t => {
+  tasks.forEach(t=>{
     if(t.hasChildren){
-      t.children.sort((a,b)=> wbsSortKey(a).localeCompare(wbsSortKey(b)));
+      t.children.sort((a,b)=> edtSortKey(a).localeCompare(edtSortKey(b)));
     }
   });
 
-  // define raízes (ordenadas)
-  const roots = tasks.filter(t => !t.parentWbs).map(t => t._wbs);
-  roots.sort((a,b)=> wbsSortKey(a).localeCompare(wbsSortKey(b)));
+  const roots = tasks.filter(t=>!t.parentEdt).map(t=>t._edt);
+  roots.sort((a,b)=> edtSortKey(a).localeCompare(edtSortKey(b)));
 
-  return { byWbs, roots };
+  return { byEdt, roots };
 }
 
 function computeVisible(tree){
-  const visible = [];
-  const { byWbs, roots } = tree;
+  const visible=[];
+  const {byEdt, roots}=tree;
 
-  function dfs(wbs){
-    const node = byWbs.get(wbs);
+  function dfs(edt){
+    const node=byEdt.get(edt);
     if(!node) return;
     visible.push(node);
-
     if(node.hasChildren && node.isCollapsed) return;
     if(node.hasChildren){
       for(const c of node.children) dfs(c);
@@ -500,9 +364,7 @@ function computeVisible(tree){
   return visible;
 }
 
-/* ============================================================
-   STATE
-   ============================================================ */
+/* ================= STATE ================= */
 let STATE = {
   allTasks: [],
   tree: null,
@@ -511,25 +373,27 @@ let STATE = {
   zoom: "day"
 };
 
-/* ============================================================
-   Filters (search/status) applied over VISIBLE tasks
-   - Regra: filtro não “puxa filho sem pai”. Ele filtra o que está visível.
-   ============================================================ */
 function applyFilters(){
   const q=document.getElementById("search").value.trim().toLowerCase();
   const fs=document.getElementById("filterStatus").value;
 
   STATE.filteredTasks = STATE.visibleTasks.filter(t=>{
-    const hay=`${t.wbs} ${t.activity} ${t.status} ${t.resources}`.toLowerCase();
+    const hay=`${t.edt} ${t.activity} ${t.status} ${t.resources}`.toLowerCase();
     const okQ=!q || hay.includes(q);
     const okS=!fs || t.status===fs;
     return okQ && okS;
   });
 }
 
-/* ============================================================
-   Render GRID (pai/filho)
-   ============================================================ */
+function refreshView(){
+  if(!STATE.tree) return;
+  STATE.visibleTasks = computeVisible(STATE.tree);
+  applyFilters();
+  renderGrid();
+  renderGantt();
+}
+
+/* ================= GRID ================= */
 function renderGrid(){
   const tb=document.getElementById("gridBody");
   tb.innerHTML="";
@@ -537,42 +401,42 @@ function renderGrid(){
   for(const t of STATE.filteredTasks){
     const tr=document.createElement("tr");
 
-    const tdW=document.createElement("td");
-    tdW.className="wbs";
-    tdW.textContent = t.wbs;
+    const tdE=document.createElement("td");
+    tdE.className="edt";
+    tdE.textContent = t.edt;
 
     const tdA=document.createElement("td");
     tdA.className="activity";
-    tdA.title = t.activity;
+    tdA.title=t.activity;
 
-    const cell = document.createElement("div");
-    cell.className = "treeCell" + (t.hasChildren ? " isParent" : "");
+    const cell=document.createElement("div");
+    cell.className="treeCell" + (t.hasChildren ? " isParent" : "");
 
-    const indent = document.createElement("span");
-    indent.className = "indent";
-    indent.style.width = (Math.max(0, t.level-1) * 14) + "px";
+    const indent=document.createElement("span");
+    indent.className="indent";
+    indent.style.width=(Math.max(0,t.level-1)*14)+"px";
 
-    const toggle = document.createElement("span");
-    toggle.className = "toggle";
-    const enabled = !!t.hasChildren;
+    const toggle=document.createElement("span");
+    toggle.className="toggle";
+    const enabled=!!t.hasChildren;
     toggle.setAttribute("aria-disabled", enabled ? "false" : "true");
 
-    const chev = document.createElement("span");
-    chev.className = "chev";
+    const chev=document.createElement("span");
+    chev.className="chev";
     chev.textContent = enabled ? (t.isCollapsed ? "▶" : "▼") : "•";
     toggle.appendChild(chev);
 
     if(enabled){
-      toggle.addEventListener("click", (ev) => {
+      toggle.addEventListener("click",(ev)=>{
         ev.stopPropagation();
-        t.isCollapsed = !t.isCollapsed;
-        refreshView(); // recomputa visível + filtros + render
+        t.isCollapsed=!t.isCollapsed;
+        refreshView();
       });
     }
 
-    const name = document.createElement("span");
-    name.className = "taskName";
-    name.textContent = t.activity;
+    const name=document.createElement("span");
+    name.className="taskName";
+    name.textContent=t.activity;
 
     cell.appendChild(indent);
     cell.appendChild(toggle);
@@ -601,7 +465,7 @@ function renderGrid(){
     tdR.title=t.resources||"";
     tdR.textContent=t.resources||"-";
 
-    tr.append(tdW,tdA,tdS,tdP,tdI,tdF,tdR);
+    tr.append(tdE,tdA,tdS,tdP,tdI,tdF,tdR);
 
     tr.style.cursor="pointer";
     tr.addEventListener("click",()=>window.open(DRIVE_FOLDER_URL,"_blank","noopener"));
@@ -610,9 +474,7 @@ function renderGrid(){
   }
 }
 
-/* ============================================================
-   Gantt (render only filtered tasks)
-   ============================================================ */
+/* ================= GANTT ================= */
 function getMinMaxDates(tasks){
   let min=tasks[0].start, max=tasks[0].finish;
   for(const t of tasks){ if(t.start<min) min=t.start; if(t.finish>max) max=t.finish; }
@@ -663,7 +525,6 @@ function renderGantt(){
       c.className="cell"; c.style.width=unitW+"px";
       c.textContent=String(d.getDate()).padStart(2,"0");
       daysRow.appendChild(c);
-
       if(d.getMonth()===currentMonth){ span++; }
       else{
         const mcell=document.createElement("div");
@@ -687,7 +548,6 @@ function renderGantt(){
       c.className="cell"; c.style.width=unitW+"px";
       c.textContent=`S${u+1}`;
       daysRow.appendChild(c);
-
       const m=weekStart.getMonth();
       if(m===currentMonth){ span++; }
       else{
@@ -755,16 +615,14 @@ function renderGantt(){
       row.appendChild(bar);
     }
 
-    row.title=`${t.activity}\nWBS: ${t.wbs}\nStatus: ${t.status}\n%: ${Math.round(t.pct)}%\nInício: ${fmtDate(t.start)}\nTérmino: ${fmtDate(t.finish)}\nRecursos: ${t.resources||"-"}`;
+    row.title=`${t.activity}\nEDT: ${t.edt}\nStatus: ${t.status}\n%: ${Math.round(t.pct)}%\nInício: ${fmtDate(t.start)}\nTérmino: ${fmtDate(t.finish)}\nRecursos: ${t.resources||"-"}`;
     row.style.cursor="pointer";
     row.addEventListener("click",()=>window.open(DRIVE_FOLDER_URL,"_blank","noopener"));
-
     bodyWrap.appendChild(row);
   });
 
   body.appendChild(bodyWrap);
 
-  // KPIs
   const totalAll = STATE.allTasks.length;
   const totalVisible = STATE.visibleTasks.length;
   const totalFiltered = STATE.filteredTasks.length;
@@ -778,41 +636,19 @@ function renderGantt(){
     `Período: ${fmtDate(min)} → ${fmtDate(max)} | Zoom: ${zoom==="day"?"Dia":"Semana"}`;
 }
 
-/* ============================================================
-   View refresh (tree -> visible -> filters -> render)
-   ============================================================ */
-function refreshView(){
-  if(!STATE.tree) return;
-  STATE.visibleTasks = computeVisible(STATE.tree);
-  applyFilters();
-  renderGrid();
-  renderGantt();
-}
-
-/* ============================================================
-   Expand/Collapse All
-   ============================================================ */
+/* ================= Expand / Collapse all ================= */
 function expandAll(){
   if(!STATE.tree) return;
-  for(const t of STATE.allTasks){
-    if(t.hasChildren) t.isCollapsed = false;
-  }
+  for(const t of STATE.allTasks){ if(t.hasChildren) t.isCollapsed=false; }
   refreshView();
 }
 function collapseAll(){
   if(!STATE.tree) return;
-  for(const t of STATE.allTasks){
-    if(t.hasChildren) t.isCollapsed = true;
-  }
-  // Mantém raízes expandidas? (padrão executivo: deixar só nível 1 visível)
-  // Deixe comentado se quiser raiz expandida:
-  // for(const r of STATE.tree.roots){ const rt = STATE.tree.byWbs.get(r); if(rt) rt.isCollapsed = false; }
-  refreshView();
+  for(const t of STATE.allTasks){ if(t.hasChildren) t.isCollapsed=true; }
+  refreshView(); // padrão: mostra apenas nível raiz
 }
 
-/* ============================================================
-   Load CSV -> build tasks -> build tree
-   ============================================================ */
+/* ================= Load CSV ================= */
 async function load(){
   hideBanner();
   document.getElementById("kpi").textContent="Carregando...";
@@ -835,6 +671,9 @@ async function load(){
     for(let i=1;i<parsed.data.length;i++){
       const r = parsed.data[i];
 
+      const edt = String(r[idx.edt] ?? "").trim();
+      if(!edt) continue;
+
       const activity = String(r[idx.activity] || "").trim();
       if(!activity) continue;
 
@@ -845,10 +684,9 @@ async function load(){
       const pct = (idx.pct >= 0) ? normPct(r[idx.pct]) : 0;
       const status = (idx.status >= 0) ? String(r[idx.status] || "").trim() : "";
       const resources = (idx.resources >= 0) ? String(r[idx.resources] || "").trim() : "";
-      const wbs = (idx.wbs >= 0) ? String(r[idx.wbs] || "").trim() : String(i);
 
       const t = {
-        wbs: wbs || String(i),
+        edt,
         activity,
         start,
         finish,
@@ -865,34 +703,29 @@ async function load(){
 
     if(tasks.length === 0) throw new Error("Nenhuma linha válida (datas/cabeçalho).");
 
-    // Ordena por WBS para consistência
-    tasks.sort((a,b)=> wbsSortKey(a.wbs).localeCompare(wbsSortKey(b.wbs)));
+    tasks.sort((a,b)=> edtSortKey(a.edt).localeCompare(edtSortKey(b.edt)));
 
     STATE.allTasks = tasks;
     STATE.zoom = document.getElementById("zoom").value;
 
-    // Build hierarchy
     STATE.tree = buildTree(STATE.allTasks);
 
-    // Padrão: expandido (tudo aberto). Se preferir padrão executivo (nível 1), descomente:
-    // collapseAll(); return;
-
-    refreshView();
+    // Padrão executivo: começa recolhido (mostra raízes). Se quiser começar expandido, comente a linha abaixo.
+    // collapseAll();
+    STATE.visibleTasks = computeVisible(STATE.tree);
+    applyFilters();
+    renderGrid();
+    renderGantt();
 
     showBanner(`<strong>Fonte OK:</strong> CSV carregado. Linhas válidas: <b>${tasks.length}</b>.`);
 
   } catch(e){
     document.getElementById("kpi").textContent="Falha na leitura.";
-    showBanner(
-      `<strong>Falha ao carregar dados.</strong><br>` +
-      `Motivo: ${String(e.message || e)}`
-    );
+    showBanner(`<strong>Falha ao carregar dados.</strong><br>Motivo: ${String(e.message || e)}`);
   }
 }
 
-/* ============================================================
-   Eventos
-   ============================================================ */
+/* ================= Events ================= */
 document.getElementById("reload").addEventListener("click", load);
 document.getElementById("search").addEventListener("input", refreshView);
 document.getElementById("filterStatus").addEventListener("change", refreshView);
