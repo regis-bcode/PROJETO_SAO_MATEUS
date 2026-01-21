@@ -21,19 +21,23 @@
       overflow:hidden;
     }
 
-    .wrap{ padding:16px; max-width:1700px; margin:0 auto; height:100vh; display:flex; flex-direction:column; gap:10px; }
+    .wrap{
+      padding:16px; max-width:1700px; margin:0 auto;
+      height:100vh; display:flex; flex-direction:column; gap:10px;
+    }
 
+    /* ============ TOPBAR (título + filtros) ============ */
     .topbar{
       display:grid;
       grid-template-columns: 1fr auto;
       gap:12px;
       align-items:start;
     }
-    .title{ display:flex; flex-direction:column; gap:2px; }
+    .title{ display:flex; flex-direction:column; gap:2px; min-width:240px; }
     .title h1{ margin:0; font-size:18px; letter-spacing:.2px; font-weight:700; }
-    .title small{ color:var(--muted); font-size:12px; }
+    /* removido o descritivo fixo que estava atrapalhando layout */
+    .title small{ display:none; }
 
-    /* ===== Filters wrapper (minimizar/maximizar) ===== */
     .filtersShell{
       display:flex;
       align-items:flex-start;
@@ -57,13 +61,14 @@
     .controls{
       display:flex; gap:10px; align-items:center; justify-content:flex-end; flex-wrap:wrap;
       max-width:1180px;
-      transition: max-height .18s ease, opacity .18s ease;
+      transition: max-height .18s ease, opacity .18s ease, margin .18s ease;
     }
     .controls.collapsed{
       max-height:0;
       overflow:hidden;
       opacity:0;
       pointer-events:none;
+      margin:0;
     }
 
     .btn,.select,.input{
@@ -82,8 +87,6 @@
     .btn:active{ transform:translateY(1px); }
     .btn.primary{ background:rgba(90,167,255,.18); border-color:rgba(90,167,255,.35); }
     .btn.primary:hover{ background:rgba(90,167,255,.25); }
-    .btn.ghost{ background:rgba(255,255,255,.04); }
-    .btn.ghost:hover{ background:rgba(255,255,255,.08); }
 
     .pill{
       display:inline-flex; gap:8px; align-items:center;
@@ -98,6 +101,9 @@
     }
     .dot{ width:8px;height:8px;border-radius:50%; background:var(--info); }
 
+    /* quando minimizar filtros, o painel sobe (reduz espaço do topo) */
+    .wrap.filtersMin .topbar{ margin-bottom:-6px; }
+
     .banner{
       background:rgba(255,191,60,.12);
       border:1px solid rgba(255,191,60,.25);
@@ -110,6 +116,7 @@
     }
     .banner strong{ color:#ffd27a; }
 
+    /* ============ PANEL ============ */
     .panel{
       background:linear-gradient(180deg, rgba(15,27,49,.92), rgba(12,22,42,.92));
       border:1px solid var(--line);
@@ -122,7 +129,6 @@
       flex-direction:column;
     }
 
-    /* ====== LAYOUT (grid + splitter vertical + gantt) ====== */
     .grid{
       display:grid;
       grid-template-columns: var(--leftW, 600px) 8px 1fr;
@@ -130,7 +136,7 @@
       min-height:0;
     }
 
-    /* ====== SCROLLBARS ====== */
+    /* SCROLLBARS */
     .leftPane::-webkit-scrollbar, .ganttViewport::-webkit-scrollbar, .hScrollBar::-webkit-scrollbar{
       height: 12px; width: 12px;
     }
@@ -197,7 +203,7 @@
     .taskName{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .isParent .taskName{ font-weight:700; letter-spacing:.1px; }
 
-    /* SPLITTER VERTICAL (ajusta largura do grid) */
+    /* SPLITTER VERTICAL */
     .splitter{
       background:rgba(255,255,255,.05);
       border-left:1px solid rgba(255,255,255,.10);
@@ -218,7 +224,6 @@
 
     /* RIGHT (GANTT) */
     .rightPane{ min-height:0; display:flex; flex-direction:column; overflow:hidden; }
-
     .ganttViewport{ flex:1; min-height:0; overflow:auto; position:relative; }
     .ganttHeader{
       position:sticky; top:0;
@@ -228,6 +233,7 @@
     }
     .ganttHeader .months{ display:flex; border-bottom:1px solid rgba(255,255,255,.08); }
     .ganttHeader .days{ display:flex; }
+
     .cell{
       flex:0 0 auto;
       border-right:1px solid rgba(255,255,255,.06);
@@ -297,26 +303,7 @@
     }
     .hScrollInner{ height:1px; width:0px; }
 
-    /* ===== Splitter HORIZONTAL (move o frame das linhas: grid + gantt) ===== */
-    .rowSplitter{
-      position:absolute;
-      left:0; right:0;
-      height:10px;
-      cursor:row-resize;
-      background:transparent;
-      z-index:20;
-    }
-    .rowSplitter:before{
-      content:"";
-      position:absolute;
-      left:14px; right:14px;
-      top:4px;
-      height:2px;
-      background:rgba(255,255,255,.16);
-      border-radius:999px;
-    }
-    .rowSplitter:hover:before{ background:rgba(255,255,255,.28); }
-
+    /* FOOTER */
     .footer{
       color:var(--muted);
       font-size:12px;
@@ -342,11 +329,10 @@
 </head>
 
 <body>
-<div class="wrap">
+<div class="wrap" id="wrap">
   <div class="topbar">
     <div class="title">
       <h1>Projeto São Mateus – Cronograma</h1>
-      <small>Visão tipo MS Project | EDT (pai/filho) | Minimizar filtros | Splitters (coluna e linhas) | Zoom: Dia, Semana, 2 Semanas, Mês</small>
     </div>
 
     <div class="filtersShell">
@@ -413,9 +399,6 @@
 
       <div class="rightPane" id="rightPane">
         <div class="ganttViewport" id="ganttViewport">
-          <!-- splitter horizontal: mover frame de linhas (grid + gantt) -->
-          <div class="rowSplitter" id="rowSplitter" title="Arraste para ajustar a altura das linhas"></div>
-
           <div id="ganttHeader" class="ganttHeader"></div>
           <div id="ganttBody" class="ganttBody"></div>
         </div>
@@ -613,13 +596,7 @@ function computeVisible(tree){
 }
 
 /* ================= STATE ================= */
-let STATE = {
-  allTasks: [],
-  tree: null,
-  visibleTasks: [],
-  filteredTasks: [],
-  zoom:"day"
-};
+let STATE = { allTasks: [], tree: null, visibleTasks: [], filteredTasks: [], zoom:"day" };
 
 /* Filters */
 function applyFilters(){
@@ -654,7 +631,6 @@ function applyFilters(){
     return okQ && okS && okR && okPmin && okPmax && okD1 && okD2;
   });
 }
-
 function refreshView(){
   if(!STATE.tree) return;
   STATE.visibleTasks = computeVisible(STATE.tree);
@@ -823,11 +799,11 @@ function renderTodayLine(min, unitW, unitDays){
 
 /* Zoom mapping */
 function zoomConfig(z){
-  // unitDays: quantos dias por coluna | unitW: largura da coluna
-  if(z==="day")   return { unitDays:1,  unitW:26, label:"Dia" };
-  if(z==="week")  return { unitDays:7,  unitW:52, label:"Semana" };
-  if(z==="biweek")return { unitDays:14, unitW:70, label:"2 Semanas" };
-  if(z==="month") return { unitDays:30, unitW:90, label:"Mês" };
+  // unitDays: dias por coluna; unitW: largura da coluna
+  if(z==="day")    return { unitDays:1,  unitW:26, label:"Dia" };
+  if(z==="week")   return { unitDays:7,  unitW:52, label:"Semana" };
+  if(z==="biweek") return { unitDays:14, unitW:70, label:"2 Semanas" };
+  if(z==="month")  return { unitDays:30, unitW:90, label:"Mês" };
   return { unitDays:1, unitW:26, label:"Dia" };
 }
 
@@ -859,14 +835,14 @@ function renderGantt(){
   const daysRow=document.createElement("div");
   daysRow.className="days"; daysRow.style.width=totalW+"px";
 
-  // Months grouping (por mês calendário usando o início de cada unidade)
   let curMonth = addDays(min,0).getMonth();
   let span=0, startIndex=0;
+
   for(let u=0;u<totalUnits;u++){
     const d = addDays(min, u*unitDays);
     const c=document.createElement("div");
     c.className="cell"; c.style.width=unitW+"px";
-    // label da coluna
+
     if(unitDays===1) c.textContent=String(d.getDate()).padStart(2,"0");
     else if(unitDays===7) c.textContent=`S${u+1}`;
     else if(unitDays===14) c.textContent=`S${(u*2)+1}-${(u*2)+2}`;
@@ -938,18 +914,17 @@ function renderGantt(){
       row.appendChild(bar);
     }
 
-    row.title=`${t.activity}\nEDT: ${t.edt}\nStatus: ${t.status}\n%: ${Math.round(t.pct)}%\nInício: ${fmtDate(t.start)}\nTérmino: ${fmtDate(t.finish)}\nRecursos: ${t.resources||"-"}`;
     bodyWrap.appendChild(row);
   });
 
   body.appendChild(bodyWrap);
 
-  // KPIs + meta
   const totalAll = STATE.allTasks.length;
   const totalVisible = STATE.visibleTasks.length;
   const totalFiltered = STATE.filteredTasks.length;
   const concl = STATE.allTasks.filter(t=>(t.status||"").toLowerCase().includes("conclu")).length;
   const atras = STATE.allTasks.filter(t=>(t.status||"").toLowerCase().includes("atras")).length;
+
   document.getElementById("kpi").textContent =
     `Itens: ${totalFiltered}/${totalVisible} (visíveis) | Total: ${totalAll} | Concluídas: ${concl} | Atrasadas: ${atras}`;
 
@@ -982,21 +957,26 @@ function clearFilters(){
   refreshView();
 }
 
-/* ===== Minimizar/Maximizar filtros ===== */
+/* Minimizar/Maximizar filtros (e faz o painel subir) */
 function setupFilterToggle(){
   const btn = document.getElementById("filtersToggle");
   const ctr = document.getElementById("controls");
-  if(!btn || !ctr) return;
+  const wrap = document.getElementById("wrap");
+  if(!btn || !ctr || !wrap) return;
 
   let collapsed=false;
   btn.addEventListener("click", ()=>{
     collapsed=!collapsed;
     ctr.classList.toggle("collapsed", collapsed);
+    wrap.classList.toggle("filtersMin", collapsed);
     btn.textContent = collapsed ? "Maximizar" : "Minimizar";
+
+    // força recalcular layout e re-render do gantt (evita "travadas" visuais)
+    setTimeout(()=>{ renderGantt(); }, 40);
   });
 }
 
-/* ===== Splitter vertical (colunas) ===== */
+/* Splitter vertical */
 function setupSplitter(){
   const splitter = document.getElementById("splitter");
   const grid = document.getElementById("grid");
@@ -1029,59 +1009,7 @@ function setupSplitter(){
   });
 }
 
-/* ===== Splitter horizontal (move frame das linhas: grid + gantt) =====
-   Implementação: ajusta a altura da área de grid (linhas) dentro do painel.
-*/
-function setupRowSplitter(){
-  const splitter = document.getElementById("rowSplitter");
-  const panel = document.getElementById("panel");
-  const left = document.getElementById("leftPane");
-  const rightV = document.getElementById("ganttViewport");
-  if(!splitter || !panel || !left || !rightV) return;
-
-  let dragging=false;
-
-  splitter.addEventListener("mousedown", (e)=>{
-    dragging=true;
-    document.body.style.cursor="row-resize";
-    document.body.style.userSelect="none";
-    e.preventDefault();
-  });
-
-  window.addEventListener("mousemove", (e)=>{
-    if(!dragging) return;
-    const panelRect = panel.getBoundingClientRect();
-    // Nova altura alvo do grid (área útil entre topo do panel e footer)
-    // Queremos ajustar o "flex" da área superior (grid) alterando o height do grid.
-    const grid = document.getElementById("grid");
-    const footer = panel.querySelector(".footer");
-    if(!grid || !footer) return;
-
-    const footerRect = footer.getBoundingClientRect();
-    const top = panelRect.top;
-    const maxH = (footerRect.top - top) - 80; // margem segurança
-    const minH = 220;
-
-    let newH = e.clientY - top;
-    newH = Math.max(minH, Math.min(maxH, newH));
-
-    grid.style.height = newH + "px";
-    grid.style.flex = "none";
-
-    // garante scroll interno
-    left.style.maxHeight = "unset";
-    rightV.style.maxHeight = "unset";
-  });
-
-  window.addEventListener("mouseup", ()=>{
-    if(!dragging) return;
-    dragging=false;
-    document.body.style.cursor="";
-    document.body.style.userSelect="";
-  });
-}
-
-/* ================= Load CSV ================= */
+/* Load CSV */
 async function load(){
   hideBanner();
   document.getElementById("kpi").textContent="Carregando...";
@@ -1140,7 +1068,6 @@ async function load(){
 
     STATE.allTasks = tasks;
     STATE.zoom = document.getElementById("zoom").value;
-
     STATE.tree = buildTree(STATE.allTasks);
 
     showBanner(`<strong>Fonte OK:</strong> CSV carregado. Linhas válidas: <b>${tasks.length}</b>.`);
@@ -1174,7 +1101,6 @@ document.getElementById("clearFilters").addEventListener("click", clearFilters);
 /* Boot */
 setupFilterToggle();
 setupSplitter();
-setupRowSplitter();
 load();
 </script>
 </body>
