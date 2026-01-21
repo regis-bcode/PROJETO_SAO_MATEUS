@@ -13,8 +13,8 @@
       --shadow:0 10px 30px rgba(0,0,0,.35); --radius:14px;
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
 
-      /* FONTE ÚNICA DE VERDADE PARA ALTURA DE LINHA */
       --rowH: 40px;
+      --gHdrRowH: 34px; /* altura de cada faixa do header (Mês e Dias) */
     }
     *{ box-sizing:border-box; }
     body{
@@ -33,7 +33,7 @@
       overflow:hidden;
     }
 
-    /* HEADER */
+    /* HEADER TOP */
     .topbar{
       display:grid;
       grid-template-columns: 1fr auto;
@@ -41,7 +41,6 @@
       align-items:start;
       min-height:0;
     }
-    .title{ display:flex; align-items:flex-start; gap:12px; min-width:240px; }
     .title h1{ margin:0; font-size:18px; letter-spacing:.2px; font-weight:700; line-height:1.2; }
 
     .filtersShell{ display:flex; align-items:flex-start; justify-content:flex-end; gap:10px; min-width:0; }
@@ -51,7 +50,6 @@
       cursor:pointer; user-select:none; white-space:nowrap; flex:0 0 auto;
     }
     .filtersToggle:hover{ background:rgba(255,255,255,.09); }
-
     .controls{
       display:flex; gap:10px; align-items:center; justify-content:flex-end; flex-wrap:wrap;
       max-width:1180px;
@@ -124,29 +122,66 @@
     }
 
     /* SCROLLBARS */
-    .leftPane::-webkit-scrollbar, .ganttViewport::-webkit-scrollbar, .hScrollBar::-webkit-scrollbar{
+    .leftBody::-webkit-scrollbar, .ganttViewport::-webkit-scrollbar, .hScrollBar::-webkit-scrollbar{
       height: 12px; width: 12px;
     }
-    .leftPane::-webkit-scrollbar-thumb, .ganttViewport::-webkit-scrollbar-thumb, .hScrollBar::-webkit-scrollbar-thumb{
+    .leftBody::-webkit-scrollbar-thumb, .ganttViewport::-webkit-scrollbar-thumb, .hScrollBar::-webkit-scrollbar-thumb{
       background: rgba(255,255,255,.22); border-radius: 10px;
     }
-    .leftPane::-webkit-scrollbar-track, .ganttViewport::-webkit-scrollbar-track, .hScrollBar::-webkit-scrollbar-track{
+    .leftBody::-webkit-scrollbar-track, .ganttViewport::-webkit-scrollbar-track, .hScrollBar::-webkit-scrollbar-track{
       background: rgba(255,255,255,.07);
     }
 
-    /* LEFT */
-    .leftPane{ background:rgba(0,0,0,.08); overflow:auto; min-height:0; }
-
-    table{ width:100%; border-collapse:collapse; }
-    thead th{
-      position:sticky; top:0; z-index:5;
-      background:rgba(10,18,32,.96);
-      border-bottom:1px solid var(--line);
-      font-weight:600; font-size:12px; color:var(--muted);
-      text-align:left; padding:10px 10px; white-space:nowrap;
+    /* ========= LEFT (header fora do scroll) ========= */
+    .leftPane{
+      background:rgba(0,0,0,.08);
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
     }
 
-    /* GARANTIA: cada linha do grid tem altura fixa (rowH) */
+    .leftHeader{
+      background:rgba(10,18,32,.96);
+      border-bottom:1px solid var(--line);
+    }
+    .leftHeaderTop{
+      height:var(--gHdrRowH);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;
+      align-items:center;
+      padding:0 10px;
+      color:transparent; /* placeholder: não mostra texto */
+      user-select:none;
+    }
+    .leftHeaderCols{
+      height:var(--gHdrRowH);
+      display:grid;
+      grid-template-columns: 92px 1fr 120px 90px 95px 95px 1fr;
+      align-items:center;
+      gap:0;
+      padding:0;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:600;
+    }
+    .leftHeaderCols > div{
+      padding:0 10px;
+      border-right:1px solid rgba(255,255,255,.06);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .leftHeaderCols > div:last-child{ border-right:none; }
+
+    .leftBody{
+      flex:1;
+      min-height:0;
+      overflow:auto; /* SCROLL VERTICAL AQUI */
+    }
+
+    table{ width:100%; border-collapse:collapse; }
+    /* sem thead */
     tbody tr{ height: var(--rowH); }
     tbody td{
       border-bottom:1px solid rgba(255,255,255,.06);
@@ -216,42 +251,39 @@
     }
     .splitter:hover{ background:rgba(255,255,255,.08); }
 
-    /* RIGHT (GANTT) */
+    /* ========= RIGHT (GANTT) ========= */
     .rightPane{ min-height:0; display:flex; flex-direction:column; overflow:hidden; }
-
     .ganttViewport{
-      flex:1;
-      min-height:0;
+      flex:1; min-height:0;
       overflow:auto;
       position:relative;
       background:rgba(0,0,0,.02);
     }
 
-    /* Header sticky dentro do viewport */
     .ganttHeader{
       position:sticky; top:0;
       z-index:6;
       background:rgba(10,18,32,.96);
       border-bottom:1px solid var(--line);
     }
-    .ganttHeader .months{ display:flex; border-bottom:1px solid rgba(255,255,255,.08); }
-    .ganttHeader .days{ display:flex; }
+    .ganttHeader .months{ display:flex; height:var(--gHdrRowH); border-bottom:1px solid rgba(255,255,255,.08); }
+    .ganttHeader .days{ display:flex; height:var(--gHdrRowH); }
 
     .cell{
       flex:0 0 auto;
       border-right:1px solid rgba(255,255,255,.06);
-      padding:8px 6px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       font-size:12px;
       color:var(--muted);
-      text-align:center;
       user-select:none;
+      padding:0 6px;
     }
     .cell.month{ font-weight:600; color:var(--text); background:rgba(255,255,255,.03); }
 
-    /* O body do gantt começa imediatamente após o header */
     .ganttBody{ position:relative; }
 
-    /* GARANTIA: cada linha do gantt tem a mesma altura do grid */
     .ganttRow{
       position:relative;
       height: var(--rowH);
@@ -285,7 +317,6 @@
       box-shadow:0 4px 14px rgba(0,0,0,.25);
     }
 
-    /* HOJE */
     .todayLine{
       position:absolute; top:0; bottom:0;
       width:2px;
@@ -308,7 +339,6 @@
       z-index:7;
     }
 
-    /* Barra horizontal sticky */
     .hScrollBar{
       position:sticky;
       bottom:0;
@@ -341,6 +371,7 @@
       .panel{ margin-top:10px; }
       .grid{ grid-template-columns:1fr; }
       .splitter{ display:none; }
+      .leftHeaderTop{ display:none; } /* em mobile simplifica */
     }
   </style>
 </head>
@@ -395,25 +426,32 @@
 
   <div class="panel">
     <div class="grid" id="grid">
-      <div class="leftPane" id="leftPane">
-        <table>
-          <thead>
-            <tr>
-              <th class="edt">EDT</th>
-              <th>Atividade</th>
-              <th class="status">Status</th>
-              <th class="pct">% Concluída</th>
-              <th class="date">Início</th>
-              <th class="date">Término</th>
-              <th>Recursos</th>
-            </tr>
-          </thead>
-          <tbody id="gridBody"></tbody>
-        </table>
+
+      <!-- LEFT -->
+      <div class="leftPane">
+        <div class="leftHeader">
+          <div class="leftHeaderTop">.</div>
+          <div class="leftHeaderCols">
+            <div>EDT</div>
+            <div>Atividade</div>
+            <div>Status</div>
+            <div>% Concluída</div>
+            <div>Início</div>
+            <div>Término</div>
+            <div>Recursos</div>
+          </div>
+        </div>
+
+        <div class="leftBody" id="leftBody">
+          <table>
+            <tbody id="gridBody"></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="splitter" id="splitter" title="Arraste para ajustar a largura da grade"></div>
 
+      <!-- RIGHT -->
       <div class="rightPane">
         <div class="ganttViewport" id="ganttViewport">
           <div id="ganttHeader" class="ganttHeader"></div>
@@ -422,6 +460,7 @@
 
         <div class="hScrollBar" id="hScrollBar"><div class="hScrollInner" id="hScrollInner"></div></div>
       </div>
+
     </div>
 
     <div class="footer">
@@ -440,13 +479,12 @@
 /* ================= CONFIG ================= */
 const DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1djCug4BgGpqOjbGmsqFQIwO8BN6w-ZGG";
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vThtKDovGj-ADJfpxmf-wzGnIV9EunqDjx065wpvXgcSDaHgUhbNnVft72hIE9O0x64_LBx8u13Q9IU/pub?output=csv";
-const EDT_FALLBACK_COL_INDEX = 1; // coluna B (0-based)
+const EDT_FALLBACK_COL_INDEX = 1;
 
-/* ================= UI ================= */
+/* UI */
 function showBanner(html){ const el=document.getElementById("banner"); el.style.display="block"; el.innerHTML=html; }
 function hideBanner(){ const el=document.getElementById("banner"); el.style.display="none"; el.innerHTML=""; }
 
-/* ================= Helpers ================= */
 function normalizeHeader(h){
   return String(h||"").trim().toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
@@ -520,7 +558,7 @@ function inferStatus(row){
   return "Não iniciada";
 }
 
-/* ================= Column mapping ================= */
+/* Column mapping */
 const ALIASES = {
   edt: ["edt","eap","wbs","outline","estrutura","estrutura analitica","estrutura analítica"],
   activity: ["atividade","nome","tarefa","task"],
@@ -547,7 +585,7 @@ function mapColumns(headers){
   return idx;
 }
 
-/* ================= EDT Tree ================= */
+/* EDT tree */
 function edtParts(edt){
   const s = String(edt||"").trim();
   if(!s) return [];
@@ -614,10 +652,10 @@ function computeVisible(tree){
   return visible;
 }
 
-/* ================= STATE ================= */
+/* STATE */
 let STATE = { allTasks: [], tree: null, visibleTasks: [], filteredTasks: [], zoom:"day" };
 
-/* ================= Filters ================= */
+/* Filters */
 function applyFilters(){
   const q = document.getElementById("search").value.trim().toLowerCase();
   const fs = document.getElementById("filterStatus").value;
@@ -650,7 +688,6 @@ function applyFilters(){
     return okQ && okS && okR && okPmin && okPmax && okD1 && okD2;
   });
 }
-
 function refreshView(){
   if(!STATE.tree) return;
   STATE.visibleTasks = computeVisible(STATE.tree);
@@ -659,7 +696,7 @@ function refreshView(){
   renderGantt();
 }
 
-/* ================= Grid render ================= */
+/* Grid render */
 function renderGrid(){
   const tb=document.getElementById("gridBody");
   tb.innerHTML="";
@@ -734,7 +771,7 @@ function renderGrid(){
   }
 }
 
-/* ================= Gantt render ================= */
+/* Gantt helpers */
 function getMinMaxDates(tasks){
   let min=tasks[0].start, max=tasks[0].finish;
   for(const t of tasks){ if(t.start<min) min=t.start; if(t.finish>max) max=t.finish; }
@@ -759,7 +796,6 @@ function monthLabel(d){
   const m=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"][d.getMonth()];
   return `${m}/${String(d.getFullYear()).slice(-2)}`;
 }
-
 function renderTodayLine(min, unitW, unitDays){
   const body = document.getElementById("ganttBody");
   if(!body) return;
@@ -785,9 +821,10 @@ function renderTodayLine(min, unitW, unitDays){
   body.appendChild(tag);
 }
 
+/* Scroll sync (CORPOS) */
 function setupScrollSync(totalWidthPx){
-  const left = document.getElementById("leftPane");
-  const gv = document.getElementById("ganttViewport");
+  const left = document.getElementById("leftBody");      // agora é o corpo do grid
+  const gv = document.getElementById("ganttViewport");   // corpo do gantt
   const hs = document.getElementById("hScrollBar");
   const inner = document.getElementById("hScrollInner");
   if(!left || !gv || !hs || !inner) return;
@@ -895,7 +932,6 @@ function renderGantt(){
     bodyWrap.appendChild(vl);
   }
 
-  // IMPORTANTE: 1 linha do gantt para 1 tarefa filtrada, na mesma ordem do grid
   tasks.forEach((t)=>{
     const row=document.createElement("div");
     row.className="ganttRow";
@@ -976,7 +1012,7 @@ function clearFilters(){
   refreshView();
 }
 
-/* Minimizar/Maximizar filtros */
+/* Minimizar */
 function setupFilterToggle(){
   const btn = document.getElementById("filtersToggle");
   const ctr = document.getElementById("controls");
