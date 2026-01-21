@@ -14,6 +14,7 @@
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
     }
     *{ box-sizing:border-box; }
+
     body{
       margin:0; font-family:var(--font);
       background:linear-gradient(180deg,#070c16 0%,#0b1220 40%,#070c16 100%);
@@ -21,29 +22,44 @@
       overflow:hidden;
     }
 
+    /* =========================================================
+       FIX 1: O painel deve subir ao minimizar filtros.
+       -> O wrap usa CSS grid com 3 linhas:
+          [header] [banner] [panel]
+       -> Quando filtros minimizam, o header "encolhe" de altura
+          e o panel automaticamente ocupa o espaço liberado.
+       FIX 2: Remover o texto descritivo que estava ocupando área.
+       ========================================================= */
     .wrap{
       padding:16px; max-width:1700px; margin:0 auto;
-      height:100vh; display:flex; flex-direction:column; gap:10px;
+      height:100vh;
+      display:grid;
+      grid-template-rows: auto auto 1fr;
+      gap:10px;
+      overflow:hidden;
     }
 
-    /* ============ TOPBAR (título + filtros) ============ */
+    /* ============ HEADER ============ */
     .topbar{
       display:grid;
       grid-template-columns: 1fr auto;
       gap:12px;
       align-items:start;
+      min-height:0;
     }
-    .title{ display:flex; flex-direction:column; gap:2px; min-width:240px; }
-    .title h1{ margin:0; font-size:18px; letter-spacing:.2px; font-weight:700; }
-    /* removido o descritivo fixo que estava atrapalhando layout */
-    .title small{ display:none; }
+    .title{ display:flex; align-items:flex-start; gap:12px; min-width:240px; }
+    .title h1{ margin:0; font-size:18px; letter-spacing:.2px; font-weight:700; line-height:1.2; }
+    /* REMOVE DEFINITIVO do descritivo */
+    .title small{ display:none !important; }
 
     .filtersShell{
       display:flex;
       align-items:flex-start;
       justify-content:flex-end;
       gap:10px;
+      min-width:0;
     }
+
     .filtersToggle{
       height:36px;
       padding:9px 10px;
@@ -55,6 +71,7 @@
       cursor:pointer;
       user-select:none;
       white-space:nowrap;
+      flex:0 0 auto;
     }
     .filtersToggle:hover{ background:rgba(255,255,255,.09); }
 
@@ -62,10 +79,11 @@
       display:flex; gap:10px; align-items:center; justify-content:flex-end; flex-wrap:wrap;
       max-width:1180px;
       transition: max-height .18s ease, opacity .18s ease, margin .18s ease;
+      overflow:hidden;
     }
+    /* O header realmente encolhe */
     .controls.collapsed{
       max-height:0;
-      overflow:hidden;
       opacity:0;
       pointer-events:none;
       margin:0;
@@ -101,9 +119,7 @@
     }
     .dot{ width:8px;height:8px;border-radius:50%; background:var(--info); }
 
-    /* quando minimizar filtros, o painel sobe (reduz espaço do topo) */
-    .wrap.filtersMin .topbar{ margin-bottom:-6px; }
-
+    /* ============ BANNER (linha de status) ============ */
     .banner{
       background:rgba(255,191,60,.12);
       border:1px solid rgba(255,191,60,.25);
@@ -113,6 +129,7 @@
       font-size:12.5px;
       display:none;
       line-height:1.35;
+      min-height:0;
     }
     .banner strong{ color:#ffd27a; }
 
@@ -123,7 +140,6 @@
       border-radius:var(--radius);
       box-shadow:var(--shadow);
       overflow:hidden;
-      flex:1;
       min-height:0;
       display:flex;
       flex-direction:column;
@@ -303,7 +319,6 @@
     }
     .hScrollInner{ height:1px; width:0px; }
 
-    /* FOOTER */
     .footer{
       color:var(--muted);
       font-size:12px;
@@ -320,8 +335,8 @@
 
     @media (max-width:1100px){
       body{ overflow:auto; }
-      .wrap{ height:auto; }
-      .panel{ flex:none; }
+      .wrap{ height:auto; display:block; }
+      .panel{ margin-top:10px; }
       .grid{ grid-template-columns:1fr; }
       .splitter{ display:none; }
     }
@@ -330,7 +345,7 @@
 
 <body>
 <div class="wrap" id="wrap">
-  <div class="topbar">
+  <div class="topbar" id="topbar">
     <div class="title">
       <h1>Projeto São Mateus – Cronograma</h1>
     </div>
@@ -731,7 +746,6 @@ function monthLabel(d){
   return `${m}/${String(d.getFullYear()).slice(-2)}`;
 }
 
-/* Scroll sync */
 function setupScrollSync(totalWidthPx){
   const left = document.getElementById("leftPane");
   const gv = document.getElementById("ganttViewport");
@@ -771,7 +785,6 @@ function setupScrollSync(totalWidthPx){
   };
 }
 
-/* HOJE line */
 function renderTodayLine(min, unitW, unitDays){
   const body = document.getElementById("ganttBody");
   if(!body) return;
@@ -797,9 +810,7 @@ function renderTodayLine(min, unitW, unitDays){
   body.appendChild(tag);
 }
 
-/* Zoom mapping */
 function zoomConfig(z){
-  // unitDays: dias por coluna; unitW: largura da coluna
   if(z==="day")    return { unitDays:1,  unitW:26, label:"Dia" };
   if(z==="week")   return { unitDays:7,  unitW:52, label:"Semana" };
   if(z==="biweek") return { unitDays:14, unitW:70, label:"2 Semanas" };
@@ -814,7 +825,7 @@ function renderGantt(){
 
   const tasks=STATE.filteredTasks;
   if(tasks.length===0){
-    header.innerHTML=`<div class="cell" style="padding:14px 10px">Sem itens para exibir (ajuste filtros/expansão).</div>`;
+    header.innerHTML=`<div class="cell" style="padding:14px 10px">Sem itens para exibir.</div>`;
     setupScrollSync(0);
     return;
   }
@@ -957,7 +968,7 @@ function clearFilters(){
   refreshView();
 }
 
-/* Minimizar/Maximizar filtros (e faz o painel subir) */
+/* FIX: Minimizar de verdade (painel sobe porque wrap é grid) */
 function setupFilterToggle(){
   const btn = document.getElementById("filtersToggle");
   const ctr = document.getElementById("controls");
@@ -968,11 +979,10 @@ function setupFilterToggle(){
   btn.addEventListener("click", ()=>{
     collapsed=!collapsed;
     ctr.classList.toggle("collapsed", collapsed);
-    wrap.classList.toggle("filtersMin", collapsed);
     btn.textContent = collapsed ? "Maximizar" : "Minimizar";
 
-    // força recalcular layout e re-render do gantt (evita "travadas" visuais)
-    setTimeout(()=>{ renderGantt(); }, 40);
+    // força reflow e re-render do gantt para evitar glitch de tamanho
+    requestAnimationFrame(()=>{ renderGantt(); });
   });
 }
 
@@ -1062,7 +1072,7 @@ async function load(){
       tasks.push(t);
     }
 
-    if(tasks.length === 0) throw new Error("Nenhuma linha válida (datas/cabeçalho).");
+    if(tasks.length === 0) throw new Error("Nenhuma linha válida.");
 
     tasks.sort((a,b)=> edtSortKey(a.edt).localeCompare(edtSortKey(b.edt)));
 
