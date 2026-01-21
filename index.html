@@ -22,14 +22,48 @@
     }
 
     .wrap{ padding:16px; max-width:1700px; margin:0 auto; height:100vh; display:flex; flex-direction:column; gap:10px; }
-    .topbar{ display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+
+    .topbar{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:12px;
+      align-items:start;
+    }
     .title{ display:flex; flex-direction:column; gap:2px; }
     .title h1{ margin:0; font-size:18px; letter-spacing:.2px; font-weight:700; }
     .title small{ color:var(--muted); font-size:12px; }
 
+    /* ===== Filters wrapper (minimizar/maximizar) ===== */
+    .filtersShell{
+      display:flex;
+      align-items:flex-start;
+      justify-content:flex-end;
+      gap:10px;
+    }
+    .filtersToggle{
+      height:36px;
+      padding:9px 10px;
+      border-radius:10px;
+      font-size:13px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      color:var(--text);
+      cursor:pointer;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .filtersToggle:hover{ background:rgba(255,255,255,.09); }
+
     .controls{
       display:flex; gap:10px; align-items:center; justify-content:flex-end; flex-wrap:wrap;
-      max-width:1120px;
+      max-width:1180px;
+      transition: max-height .18s ease, opacity .18s ease;
+    }
+    .controls.collapsed{
+      max-height:0;
+      overflow:hidden;
+      opacity:0;
+      pointer-events:none;
     }
 
     .btn,.select,.input{
@@ -88,7 +122,7 @@
       flex-direction:column;
     }
 
-    /* GRID LAYOUT COM SPLITTER (grid + divisor + gantt) */
+    /* ====== LAYOUT (grid + splitter vertical + gantt) ====== */
     .grid{
       display:grid;
       grid-template-columns: var(--leftW, 600px) 8px 1fr;
@@ -96,7 +130,7 @@
       min-height:0;
     }
 
-    /* Scrollbars mais visíveis */
+    /* ====== SCROLLBARS ====== */
     .leftPane::-webkit-scrollbar, .ganttViewport::-webkit-scrollbar, .hScrollBar::-webkit-scrollbar{
       height: 12px; width: 12px;
     }
@@ -108,30 +142,7 @@
     }
 
     /* LEFT */
-    .leftPane{
-      background:rgba(0,0,0,.08);
-      overflow:auto;
-      min-height:0;
-    }
-
-    /* SPLITTER */
-    .splitter{
-      background:rgba(255,255,255,.05);
-      border-left:1px solid rgba(255,255,255,.10);
-      border-right:1px solid rgba(255,255,255,.10);
-      cursor:col-resize;
-      position:relative;
-    }
-    .splitter:before{
-      content:"";
-      position:absolute;
-      top:0; bottom:0;
-      left:50%;
-      width:2px;
-      transform:translateX(-1px);
-      background:rgba(255,255,255,.12);
-    }
-    .splitter:hover{ background:rgba(255,255,255,.08); }
+    .leftPane{ background:rgba(0,0,0,.08); overflow:auto; min-height:0; }
 
     table{ width:100%; border-collapse:collapse; }
     thead th{
@@ -186,22 +197,31 @@
     .taskName{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .isParent .taskName{ font-weight:700; letter-spacing:.1px; }
 
-    /* RIGHT (GANTT) */
-    .rightPane{
-      min-height:0;
-      display:flex;
-      flex-direction:column;
-      overflow:hidden;
-    }
-    .ganttViewport{
-      flex:1;
-      min-height:0;
-      overflow:auto;
+    /* SPLITTER VERTICAL (ajusta largura do grid) */
+    .splitter{
+      background:rgba(255,255,255,.05);
+      border-left:1px solid rgba(255,255,255,.10);
+      border-right:1px solid rgba(255,255,255,.10);
+      cursor:col-resize;
       position:relative;
     }
+    .splitter:before{
+      content:"";
+      position:absolute;
+      top:0; bottom:0;
+      left:50%;
+      width:2px;
+      transform:translateX(-1px);
+      background:rgba(255,255,255,.12);
+    }
+    .splitter:hover{ background:rgba(255,255,255,.08); }
+
+    /* RIGHT (GANTT) */
+    .rightPane{ min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+
+    .ganttViewport{ flex:1; min-height:0; overflow:auto; position:relative; }
     .ganttHeader{
-      position:sticky;
-      top:0;
+      position:sticky; top:0;
       z-index:6;
       background:rgba(10,18,32,.96);
       border-bottom:1px solid var(--line);
@@ -219,6 +239,7 @@
     }
     .cell.month{ font-weight:600; color:var(--text); background:rgba(255,255,255,.03); }
     .ganttBody{ position:relative; }
+
     .ganttRow{ position:relative; height:35px; border-bottom:1px solid rgba(255,255,255,.06); }
     .ganttRow:hover{ background:rgba(90,167,255,.08); }
     .vline{ position:absolute; top:0; bottom:0; width:1px; background:rgba(255,255,255,.06); }
@@ -240,11 +261,9 @@
       box-shadow:0 4px 14px rgba(0,0,0,.25);
     }
 
-    /* Linha do HOJE (timeline) */
+    /* Linha do HOJE */
     .todayLine{
-      position:absolute;
-      top:0;
-      bottom:0;
+      position:absolute; top:0; bottom:0;
       width:2px;
       background:rgba(255,255,255,.38);
       box-shadow:0 0 0 1px rgba(0,0,0,.25);
@@ -278,6 +297,26 @@
     }
     .hScrollInner{ height:1px; width:0px; }
 
+    /* ===== Splitter HORIZONTAL (move o frame das linhas: grid + gantt) ===== */
+    .rowSplitter{
+      position:absolute;
+      left:0; right:0;
+      height:10px;
+      cursor:row-resize;
+      background:transparent;
+      z-index:20;
+    }
+    .rowSplitter:before{
+      content:"";
+      position:absolute;
+      left:14px; right:14px;
+      top:4px;
+      height:2px;
+      background:rgba(255,255,255,.16);
+      border-radius:999px;
+    }
+    .rowSplitter:hover:before{ background:rgba(255,255,255,.28); }
+
     .footer{
       color:var(--muted);
       font-size:12px;
@@ -298,8 +337,6 @@
       .panel{ flex:none; }
       .grid{ grid-template-columns:1fr; }
       .splitter{ display:none; }
-      .leftPane{ max-height:48vh; border-bottom:1px solid var(--line); }
-      .rightPane{ max-height:48vh; }
     }
   </style>
 </head>
@@ -309,54 +346,51 @@
   <div class="topbar">
     <div class="title">
       <h1>Projeto São Mateus – Cronograma</h1>
-      <small>Visão tipo MS Project | EDT (pai/filho) | Timeline HOJE | Presets: Hoje, Semana, 15d, Mês, 3M, 6M, 1A</small>
+      <small>Visão tipo MS Project | EDT (pai/filho) | Minimizar filtros | Splitters (coluna e linhas) | Zoom: Dia, Semana, 2 Semanas, Mês</small>
     </div>
 
-    <div class="controls">
-      <input id="search" class="input" style="width:220px" placeholder="Buscar atividade, status, recurso..." />
+    <div class="filtersShell">
+      <button id="filtersToggle" class="filtersToggle">Minimizar</button>
 
-      <select id="filterStatus" class="select" title="Filtrar por status">
-        <option value="">Todos os status</option>
-        <option value="Concluída">Concluída</option>
-        <option value="Atrasada">Atrasada</option>
-        <option value="Em andamento">Em andamento</option>
-        <option value="Não iniciada">Não iniciada</option>
-      </select>
+      <div id="controls" class="controls">
+        <input id="search" class="input" style="width:220px" placeholder="Buscar atividade, status, recurso..." />
 
-      <input id="dtStart" class="input" type="date" title="Período (a partir de)" />
-      <input id="dtEnd" class="input" type="date" title="Período (até)" />
+        <select id="filterStatus" class="select" title="Filtrar por status">
+          <option value="">Todos os status</option>
+          <option value="Concluída">Concluída</option>
+          <option value="Atrasada">Atrasada</option>
+          <option value="Em andamento">Em andamento</option>
+          <option value="Não iniciada">Não iniciada</option>
+        </select>
 
-      <input id="pctMin" class="input" type="number" min="0" max="100" placeholder="% min" style="width:88px" />
-      <input id="pctMax" class="input" type="number" min="0" max="100" placeholder="% max" style="width:88px" />
+        <input id="dtStart" class="input" type="date" title="Período (a partir de)" />
+        <input id="dtEnd" class="input" type="date" title="Período (até)" />
 
-      <input id="resFilter" class="input" placeholder="Filtrar por recurso..." style="width:190px" />
+        <input id="pctMin" class="input" type="number" min="0" max="100" placeholder="% min" style="width:88px" />
+        <input id="pctMax" class="input" type="number" min="0" max="100" placeholder="% max" style="width:88px" />
 
-      <select id="zoom" class="select" title="Zoom do Gantt">
-        <option value="day">Zoom: Dia</option>
-        <option value="week">Zoom: Semana</option>
-      </select>
+        <input id="resFilter" class="input" placeholder="Filtrar por recurso..." style="width:190px" />
 
-      <!-- Presets de janela temporal -->
-      <button class="btn ghost" id="pHoje" title="Centralizar e destacar hoje">HOJE</button>
-      <button class="btn ghost" id="pSemana" title="Janela: 7 dias">1 semana</button>
-      <button class="btn ghost" id="p15d" title="Janela: 15 dias">15 dias</button>
-      <button class="btn ghost" id="pMes" title="Janela: 30 dias">MÊS</button>
-      <button class="btn ghost" id="p3m" title="Janela: 3 meses (90 dias)">3 meses</button>
-      <button class="btn ghost" id="p6m" title="Janela: 6 meses (180 dias)">6 meses</button>
-      <button class="btn ghost" id="p1a" title="Janela: 1 ano (365 dias)">1 ano</button>
+        <select id="zoom" class="select" title="Zoom do Gantt">
+          <option value="day">Zoom: Dia</option>
+          <option value="week">Zoom: Semana</option>
+          <option value="biweek">Zoom: 2 Semanas</option>
+          <option value="month">Zoom: Mês</option>
+        </select>
 
-      <button id="expandAll" class="btn" title="Expandir tudo">Expandir</button>
-      <button id="collapseAll" class="btn" title="Recolher tudo">Recolher</button>
-      <button id="clearFilters" class="btn" title="Limpar filtros">Limpar</button>
-      <button id="reload" class="btn primary" title="Recarregar">Recarregar</button>
+        <button id="expandAll" class="btn" title="Expandir tudo">Expandir</button>
+        <button id="collapseAll" class="btn" title="Recolher tudo">Recolher</button>
+        <button id="clearFilters" class="btn" title="Limpar filtros">Limpar</button>
+        <button id="reload" class="btn primary" title="Recarregar">Recarregar</button>
 
-      <span class="pill"><span class="dot"></span><span id="kpi">Carregando...</span></span>
+        <span class="pill"><span class="dot"></span><span id="kpi">Carregando...</span></span>
+      </div>
     </div>
   </div>
 
   <div id="banner" class="banner"></div>
 
-  <div class="panel">
+  <div class="panel" id="panel">
     <div class="grid" id="grid">
       <div class="leftPane" id="leftPane">
         <table>
@@ -379,6 +413,9 @@
 
       <div class="rightPane" id="rightPane">
         <div class="ganttViewport" id="ganttViewport">
+          <!-- splitter horizontal: mover frame de linhas (grid + gantt) -->
+          <div class="rowSplitter" id="rowSplitter" title="Arraste para ajustar a altura das linhas"></div>
+
           <div id="ganttHeader" class="ganttHeader"></div>
           <div id="ganttBody" class="ganttBody"></div>
         </div>
@@ -405,11 +442,9 @@ const DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1djCug4BgGpqOjb
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vThtKDovGj-ADJfpxmf-wzGnIV9EunqDjx065wpvXgcSDaHgUhbNnVft72hIE9O0x64_LBx8u13Q9IU/pub?output=csv";
 const EDT_FALLBACK_COL_INDEX = 1; // coluna B (0-based)
 
-/* ================= UI ================= */
 function showBanner(html){ const el=document.getElementById("banner"); el.style.display="block"; el.innerHTML=html; }
 function hideBanner(){ const el=document.getElementById("banner"); el.style.display="none"; el.innerHTML=""; }
 
-/* ================= Helpers ================= */
 function normalizeHeader(h){
   return String(h||"").trim().toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
@@ -439,11 +474,6 @@ function parseDateBR(s){
     let dd=parseInt(m[1],10), mm=parseInt(m[2],10)-1, yy=parseInt(m[3],10);
     if(yy<100) yy+=2000;
     const d = new Date(yy,mm,dd);
-    return isNaN(d)?null:d;
-  }
-  m = cleaned.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if(m){
-    const d=new Date(parseInt(m[1],10),parseInt(m[2],10)-1,parseInt(m[3],10));
     return isNaN(d)?null:d;
   }
   const d = new Date(cleaned);
@@ -488,7 +518,7 @@ function inferStatus(row){
   return "Não iniciada";
 }
 
-/* ================= Column mapping ================= */
+/* Column mapping */
 const ALIASES = {
   edt: ["edt","eap","wbs","outline","estrutura","estrutura analitica","estrutura analítica"],
   activity: ["atividade","nome","tarefa","task"],
@@ -515,7 +545,7 @@ function mapColumns(headers){
   return idx;
 }
 
-/* ================= EDT Tree helpers ================= */
+/* EDT tree helpers */
 function edtParts(edt){
   const s = String(edt||"").trim();
   if(!s) return [];
@@ -588,12 +618,10 @@ let STATE = {
   tree: null,
   visibleTasks: [],
   filteredTasks: [],
-  zoom:"day",
-  viewWindowDays: null,   // null = full (min/max das tasks filtradas)
-  viewCenter: new Date()  // centro da janela
+  zoom:"day"
 };
 
-/* ================= Filters ================= */
+/* Filters */
 function applyFilters(){
   const q = document.getElementById("search").value.trim().toLowerCase();
   const fs = document.getElementById("filterStatus").value;
@@ -635,11 +663,10 @@ function refreshView(){
   renderGantt();
 }
 
-/* ================= Grid render ================= */
+/* Grid */
 function renderGrid(){
   const tb=document.getElementById("gridBody");
   tb.innerHTML="";
-
   for(const t of STATE.filteredTasks){
     const tr=document.createElement("tr");
 
@@ -710,7 +737,7 @@ function renderGrid(){
   }
 }
 
-/* ================= Gantt render ================= */
+/* Gantt helpers */
 function getMinMaxDates(tasks){
   let min=tasks[0].start, max=tasks[0].finish;
   for(const t of tasks){ if(t.start<min) min=t.start; if(t.finish>max) max=t.finish; }
@@ -727,12 +754,8 @@ function monthLabel(d){
   const m=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"][d.getMonth()];
   return `${m}/${String(d.getFullYear()).slice(-2)}`;
 }
-function clampDate(d, min, max){
-  const t=d.getTime();
-  return new Date(Math.min(Math.max(t, min.getTime()), max.getTime()));
-}
 
-/* ===== Scroll sync + sticky hscroll ===== */
+/* Scroll sync */
 function setupScrollSync(totalWidthPx){
   const left = document.getElementById("leftPane");
   const gv = document.getElementById("ganttViewport");
@@ -772,22 +795,18 @@ function setupScrollSync(totalWidthPx){
   };
 }
 
-function renderTodayLine(min, unitW, zoom){
-  const gv = document.getElementById("ganttViewport");
+/* HOJE line */
+function renderTodayLine(min, unitW, unitDays){
   const body = document.getElementById("ganttBody");
-  if(!gv || !body) return;
-
-  // remove anteriores
+  if(!body) return;
   body.querySelectorAll(".todayLine,.todayTag").forEach(n=>n.remove());
 
   const today = new Date();
   const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-  // se hoje fora do range visível, não desenha
   const diffDays = daysBetween(min, startOfToday);
   if(diffDays < 0) return;
 
-  const x = (zoom === "day") ? (diffDays * unitW) : (Math.floor(diffDays/7) * unitW);
+  const x = Math.floor(diffDays / unitDays) * unitW;
 
   const line = document.createElement("div");
   line.className = "todayLine";
@@ -802,20 +821,14 @@ function renderTodayLine(min, unitW, zoom){
   body.appendChild(tag);
 }
 
-function scrollToToday(min, unitW, zoom){
-  const gv = document.getElementById("ganttViewport");
-  if(!gv) return;
-
-  const today = new Date();
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const diffDays = daysBetween(min, startOfToday);
-  if(diffDays < 0) return;
-
-  const x = (zoom === "day") ? (diffDays * unitW) : (Math.floor(diffDays/7) * unitW);
-
-  // posiciona hoje no centro da viewport
-  const center = x - (gv.clientWidth/2);
-  gv.scrollLeft = Math.max(0, center);
+/* Zoom mapping */
+function zoomConfig(z){
+  // unitDays: quantos dias por coluna | unitW: largura da coluna
+  if(z==="day")   return { unitDays:1,  unitW:26, label:"Dia" };
+  if(z==="week")  return { unitDays:7,  unitW:52, label:"Semana" };
+  if(z==="biweek")return { unitDays:14, unitW:70, label:"2 Semanas" };
+  if(z==="month") return { unitDays:30, unitW:90, label:"Mês" };
+  return { unitDays:1, unitW:26, label:"Dia" };
 }
 
 function renderGantt(){
@@ -830,86 +843,52 @@ function renderGantt(){
     return;
   }
 
-  // base range (das tarefas filtradas)
   let {min, max} = getMinMaxDates(tasks);
-
-  // janela temporal (presets) — controla a escala exibida
-  if(STATE.viewWindowDays && Number.isFinite(STATE.viewWindowDays)){
-    const half = Math.floor(STATE.viewWindowDays/2);
-    const center = STATE.viewCenter || new Date();
-    const wMin = addDays(center, -half);
-    const wMax = addDays(center,  half);
-
-    // se preferir não cortar fora das tasks filtradas, comente 2 linhas abaixo:
-    min = wMin;
-    max = wMax;
-  }
-
-  // padding operacional
   min = addDays(min, -3);
   max = addDays(max, +3);
 
-  const zoom=STATE.zoom;
-  const unitDays=(zoom==="day")?1:7;
-  const totalUnits=Math.ceil((daysBetween(min,max)+1)/unitDays);
-  const unitW=(zoom==="day")?26:52;
-  const totalW=totalUnits*unitW;
+  const zc = zoomConfig(STATE.zoom);
+  const unitDays = zc.unitDays;
+  const unitW = zc.unitW;
+
+  const totalUnits = Math.ceil((daysBetween(min,max)+1)/unitDays);
+  const totalW = totalUnits * unitW;
 
   const monthsRow=document.createElement("div");
   monthsRow.className="months"; monthsRow.style.width=totalW+"px";
   const daysRow=document.createElement("div");
   daysRow.className="days"; daysRow.style.width=totalW+"px";
 
-  if(zoom==="day"){
-    let currentMonth=addDays(min,0).getMonth(), span=0, startIndex=0;
-    for(let u=0;u<totalUnits;u++){
-      const d=addDays(min,u);
-      const c=document.createElement("div");
-      c.className="cell"; c.style.width=unitW+"px";
-      c.textContent=String(d.getDate()).padStart(2,"0");
-      daysRow.appendChild(c);
+  // Months grouping (por mês calendário usando o início de cada unidade)
+  let curMonth = addDays(min,0).getMonth();
+  let span=0, startIndex=0;
+  for(let u=0;u<totalUnits;u++){
+    const d = addDays(min, u*unitDays);
+    const c=document.createElement("div");
+    c.className="cell"; c.style.width=unitW+"px";
+    // label da coluna
+    if(unitDays===1) c.textContent=String(d.getDate()).padStart(2,"0");
+    else if(unitDays===7) c.textContent=`S${u+1}`;
+    else if(unitDays===14) c.textContent=`S${(u*2)+1}-${(u*2)+2}`;
+    else c.textContent=monthLabel(d);
 
-      if(d.getMonth()===currentMonth){ span++; }
-      else{
-        const mcell=document.createElement("div");
-        mcell.className="cell month";
-        mcell.style.width=(span*unitW)+"px";
-        mcell.textContent=monthLabel(addDays(min,startIndex));
-        monthsRow.appendChild(mcell);
-        currentMonth=d.getMonth(); span=1; startIndex=u;
-      }
-    }
-    const mcell=document.createElement("div");
-    mcell.className="cell month";
-    mcell.style.width=(span*unitW)+"px";
-    mcell.textContent=monthLabel(addDays(min,startIndex));
-    monthsRow.appendChild(mcell);
-  } else {
-    let currentMonth=addDays(min,0).getMonth(), span=0, startIndex=0;
-    for(let u=0;u<totalUnits;u++){
-      const weekStart=addDays(min,u*7);
-      const c=document.createElement("div");
-      c.className="cell"; c.style.width=unitW+"px";
-      c.textContent=`S${u+1}`;
-      daysRow.appendChild(c);
+    daysRow.appendChild(c);
 
-      const m=weekStart.getMonth();
-      if(m===currentMonth){ span++; }
-      else{
-        const mcell=document.createElement("div");
-        mcell.className="cell month";
-        mcell.style.width=(span*unitW)+"px";
-        mcell.textContent=monthLabel(addDays(min,startIndex*7));
-        monthsRow.appendChild(mcell);
-        currentMonth=m; span=1; startIndex=u;
-      }
+    if(d.getMonth()===curMonth){ span++; }
+    else{
+      const mcell=document.createElement("div");
+      mcell.className="cell month";
+      mcell.style.width=(span*unitW)+"px";
+      mcell.textContent=monthLabel(addDays(min, startIndex*unitDays));
+      monthsRow.appendChild(mcell);
+      curMonth=d.getMonth(); span=1; startIndex=u;
     }
-    const mcell=document.createElement("div");
-    mcell.className="cell month";
-    mcell.style.width=(span*unitW)+"px";
-    mcell.textContent=monthLabel(addDays(min,startIndex*7));
-    monthsRow.appendChild(mcell);
   }
+  const mcell=document.createElement("div");
+  mcell.className="cell month";
+  mcell.style.width=(span*unitW)+"px";
+  mcell.textContent=monthLabel(addDays(min, startIndex*unitDays));
+  monthsRow.appendChild(mcell);
 
   header.append(monthsRow, daysRow);
 
@@ -930,38 +909,33 @@ function renderGantt(){
     const startOffDays=daysBetween(min,t.start);
     const finishOffDays=daysBetween(min,t.finish);
 
-    let x1=(zoom==="day")?startOffDays:Math.floor(startOffDays/7);
-    let x2=(zoom==="day")?finishOffDays:Math.floor(finishOffDays/7);
+    let x1=Math.floor(startOffDays/unitDays);
+    let x2=Math.floor(finishOffDays/unitDays);
 
-    // se task fora da janela, não desenha barra (mas mantém linha)
-    // (mantém alinhamento tipo Project)
-    const isOutside = (finishOffDays < 0) || (daysBetween(min,t.start) > daysBetween(min,max));
-    if(!isOutside){
-      const wUnits=Math.max(1,(x2-x1+1));
-      const left=x1*unitW;
-      const width=wUnits*unitW;
+    const wUnits=Math.max(1,(x2-x1+1));
+    const left=x1*unitW;
+    const width=wUnits*unitW;
 
-      const isMilestone=daysBetween(t.start,t.finish)===0;
+    const isMilestone=daysBetween(t.start,t.finish)===0;
 
-      if(isMilestone){
-        const ms=document.createElement("div");
-        ms.className="milestone";
-        ms.style.left=(left+Math.max(0,(unitW-20)/2))+"px";
-        row.appendChild(ms);
-      } else {
-        const bar=document.createElement("div");
-        bar.className="bar";
-        if((t.status||"").toLowerCase().includes("atras")) bar.classList.add("late");
-        bar.style.left=left+"px";
-        bar.style.width=width+"px";
+    if(isMilestone){
+      const ms=document.createElement("div");
+      ms.className="milestone";
+      ms.style.left=(left+Math.max(0,(unitW-20)/2))+"px";
+      row.appendChild(ms);
+    } else {
+      const bar=document.createElement("div");
+      bar.className="bar";
+      if((t.status||"").toLowerCase().includes("atras")) bar.classList.add("late");
+      bar.style.left=left+"px";
+      bar.style.width=width+"px";
 
-        const done=document.createElement("div");
-        done.className="done";
-        done.style.width=`${Math.max(0,Math.min(100,t.pct))}%`;
+      const done=document.createElement("div");
+      done.className="done";
+      done.style.width=`${Math.max(0,Math.min(100,t.pct))}%`;
 
-        bar.appendChild(done);
-        row.appendChild(bar);
-      }
+      bar.appendChild(done);
+      row.appendChild(bar);
     }
 
     row.title=`${t.activity}\nEDT: ${t.edt}\nStatus: ${t.status}\n%: ${Math.round(t.pct)}%\nInício: ${fmtDate(t.start)}\nTérmino: ${fmtDate(t.finish)}\nRecursos: ${t.resources||"-"}`;
@@ -980,43 +954,13 @@ function renderGantt(){
     `Itens: ${totalFiltered}/${totalVisible} (visíveis) | Total: ${totalAll} | Concluídas: ${concl} | Atrasadas: ${atras}`;
 
   document.getElementById("meta").textContent =
-    `Janela: ${fmtDate(min)} → ${fmtDate(max)} | Zoom: ${zoom==="day"?"Dia":"Semana"}`;
+    `Período: ${fmtDate(min)} → ${fmtDate(max)} | Zoom: ${zoomConfig(STATE.zoom).label}`;
 
   setupScrollSync(totalW);
-  renderTodayLine(min, unitW, zoom);
+  renderTodayLine(min, unitW, unitDays);
 }
 
-/* ================= Presets de janela temporal ================= */
-function setWindow(days){
-  STATE.viewWindowDays = days;
-  STATE.viewCenter = new Date();
-  renderGantt();
-  // centraliza em hoje
-  const {min} = (STATE.filteredTasks.length ? getMinMaxDates(STATE.filteredTasks) : {min:new Date()});
-  // quando windowDays ativo, min usado é recalculado em renderGantt; para scroll, recalcula coerente:
-  // estratégia: reaproveita o min do último render via leitura do texto meta não é robusto;
-  // aqui fazemos um render + setTimeout e centraliza pelo scroll atual (ok).
-  setTimeout(()=> {
-    // tenta centralizar usando o min "estimado" do centro
-    const half = Math.floor(days/2);
-    const min2 = addDays(STATE.viewCenter, -half-3); // inclui padding de render
-    const unitW = (STATE.zoom==="day") ? 26 : 52;
-    scrollToToday(min2, unitW, STATE.zoom);
-  }, 50);
-}
-function onlyToday(){
-  // não muda janela se você estiver em full; apenas centraliza
-  STATE.viewCenter = new Date();
-  renderGantt();
-  setTimeout(()=> {
-    const unitW = (STATE.zoom==="day") ? 26 : 52;
-    // min estimado (hoje - 15 -3) para posicionar; suficiente para centralização
-    const min2 = addDays(new Date(), -18);
-    scrollToToday(min2, unitW, STATE.zoom);
-  }, 50);
-}
-
-/* ================= Actions ================= */
+/* Actions */
 function expandAll(){
   if(!STATE.tree) return;
   for(const t of STATE.allTasks){ if(t.hasChildren) t.isCollapsed=false; }
@@ -1038,7 +982,21 @@ function clearFilters(){
   refreshView();
 }
 
-/* ================= Splitter (movimentar a Grid) ================= */
+/* ===== Minimizar/Maximizar filtros ===== */
+function setupFilterToggle(){
+  const btn = document.getElementById("filtersToggle");
+  const ctr = document.getElementById("controls");
+  if(!btn || !ctr) return;
+
+  let collapsed=false;
+  btn.addEventListener("click", ()=>{
+    collapsed=!collapsed;
+    ctr.classList.toggle("collapsed", collapsed);
+    btn.textContent = collapsed ? "Maximizar" : "Minimizar";
+  });
+}
+
+/* ===== Splitter vertical (colunas) ===== */
 function setupSplitter(){
   const splitter = document.getElementById("splitter");
   const grid = document.getElementById("grid");
@@ -1046,31 +1004,81 @@ function setupSplitter(){
 
   let dragging=false;
 
-  const onDown = (e) => {
+  splitter.addEventListener("mousedown", (e)=>{
     dragging=true;
     document.body.style.cursor="col-resize";
     document.body.style.userSelect="none";
     e.preventDefault();
-  };
-  const onMove = (e) => {
+  });
+
+  window.addEventListener("mousemove", (e)=>{
     if(!dragging) return;
     const rect = grid.getBoundingClientRect();
     let w = e.clientX - rect.left;
-    const minW = 360;
-    const maxW = Math.min(980, rect.width - 360);
+    const minW = 340;
+    const maxW = Math.min(1050, rect.width - 360);
     w = Math.max(minW, Math.min(maxW, w));
     grid.style.setProperty("--leftW", w + "px");
-  };
-  const onUp = () => {
+  });
+
+  window.addEventListener("mouseup", ()=>{
     if(!dragging) return;
     dragging=false;
     document.body.style.cursor="";
     document.body.style.userSelect="";
-  };
+  });
+}
 
-  splitter.addEventListener("mousedown", onDown);
-  window.addEventListener("mousemove", onMove);
-  window.addEventListener("mouseup", onUp);
+/* ===== Splitter horizontal (move frame das linhas: grid + gantt) =====
+   Implementação: ajusta a altura da área de grid (linhas) dentro do painel.
+*/
+function setupRowSplitter(){
+  const splitter = document.getElementById("rowSplitter");
+  const panel = document.getElementById("panel");
+  const left = document.getElementById("leftPane");
+  const rightV = document.getElementById("ganttViewport");
+  if(!splitter || !panel || !left || !rightV) return;
+
+  let dragging=false;
+
+  splitter.addEventListener("mousedown", (e)=>{
+    dragging=true;
+    document.body.style.cursor="row-resize";
+    document.body.style.userSelect="none";
+    e.preventDefault();
+  });
+
+  window.addEventListener("mousemove", (e)=>{
+    if(!dragging) return;
+    const panelRect = panel.getBoundingClientRect();
+    // Nova altura alvo do grid (área útil entre topo do panel e footer)
+    // Queremos ajustar o "flex" da área superior (grid) alterando o height do grid.
+    const grid = document.getElementById("grid");
+    const footer = panel.querySelector(".footer");
+    if(!grid || !footer) return;
+
+    const footerRect = footer.getBoundingClientRect();
+    const top = panelRect.top;
+    const maxH = (footerRect.top - top) - 80; // margem segurança
+    const minH = 220;
+
+    let newH = e.clientY - top;
+    newH = Math.max(minH, Math.min(maxH, newH));
+
+    grid.style.height = newH + "px";
+    grid.style.flex = "none";
+
+    // garante scroll interno
+    left.style.maxHeight = "unset";
+    rightV.style.maxHeight = "unset";
+  });
+
+  window.addEventListener("mouseup", ()=>{
+    if(!dragging) return;
+    dragging=false;
+    document.body.style.cursor="";
+    document.body.style.userSelect="";
+  });
 }
 
 /* ================= Load CSV ================= */
@@ -1136,7 +1144,6 @@ async function load(){
     STATE.tree = buildTree(STATE.allTasks);
 
     showBanner(`<strong>Fonte OK:</strong> CSV carregado. Linhas válidas: <b>${tasks.length}</b>.`);
-
     refreshView();
 
   } catch(e){
@@ -1145,7 +1152,7 @@ async function load(){
   }
 }
 
-/* ================= Events ================= */
+/* Events */
 document.getElementById("reload").addEventListener("click", load);
 document.getElementById("search").addEventListener("input", refreshView);
 document.getElementById("filterStatus").addEventListener("change", refreshView);
@@ -1164,17 +1171,10 @@ document.getElementById("expandAll").addEventListener("click", expandAll);
 document.getElementById("collapseAll").addEventListener("click", collapseAll);
 document.getElementById("clearFilters").addEventListener("click", clearFilters);
 
-/* Presets */
-document.getElementById("pHoje").addEventListener("click", () => onlyToday());
-document.getElementById("pSemana").addEventListener("click", () => setWindow(7));
-document.getElementById("p15d").addEventListener("click", () => setWindow(15));
-document.getElementById("pMes").addEventListener("click", () => setWindow(30));
-document.getElementById("p3m").addEventListener("click", () => setWindow(90));
-document.getElementById("p6m").addEventListener("click", () => setWindow(180));
-document.getElementById("p1a").addEventListener("click", () => setWindow(365));
-
 /* Boot */
+setupFilterToggle();
 setupSplitter();
+setupRowSplitter();
 load();
 </script>
 </body>
