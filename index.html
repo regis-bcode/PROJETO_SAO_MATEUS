@@ -15,8 +15,10 @@
 
       /* 1 fonte de verdade */
       --rowH: 40px;
-      --hdrH: 34px; /* cada faixa do header (Mês e Dias) */
+      --hdrH: 34px;        /* cada faixa do header (Mês e Dias) */
+      --ganttYOffset: 0px; /* offset fino para casar 100% */
     }
+
     *{ box-sizing:border-box; }
     body{
       margin:0; font-family:var(--font);
@@ -132,7 +134,7 @@
       background: rgba(255,255,255,.07);
     }
 
-    /* LEFT (header fora do scroll vertical) */
+    /* LEFT */
     .leftPane{
       background:rgba(0,0,0,.08);
       min-height:0;
@@ -179,6 +181,7 @@
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
+      line-height: 1; /* elimina drift por line-height */
     }
     tbody tr:hover td{ background:rgba(90,167,255,.08); }
 
@@ -234,13 +237,13 @@
     }
     .splitter:hover{ background:rgba(255,255,255,.08); }
 
-    /* RIGHT (header fora do scroll vertical) */
+    /* RIGHT */
     .rightPane{ min-height:0; display:flex; flex-direction:column; overflow:hidden; background:rgba(0,0,0,.02); }
 
     .rightHeader{
       background:rgba(10,18,32,.96);
       border-bottom:1px solid var(--line);
-      overflow:hidden; /* sem scroll aqui */
+      overflow:hidden;
     }
     .rightHeader .months{
       height:var(--hdrH);
@@ -263,21 +266,26 @@
       color:var(--muted);
       user-select:none;
       padding:0 6px;
+      line-height:1;
     }
     .cell.month{ font-weight:600; color:var(--text); background:rgba(255,255,255,.03); }
 
     .ganttBodyViewport{
       flex:1;
       min-height:0;
-      overflow:auto; /* scroll vertical + horizontal aqui */
+      overflow:auto;
       position:relative;
     }
     .ganttBody{ position:relative; }
+
+    /* wrapper calibrável */
+    .ganttBody > .ganttWrapCalibrated{ transform: translateY(var(--ganttYOffset)); }
 
     .ganttRow{
       position:relative;
       height: var(--rowH);
       border-bottom:1px solid rgba(255,255,255,.06);
+      line-height:1; /* garante consistência */
     }
     .ganttRow:hover{ background:rgba(90,167,255,.08); }
 
@@ -446,13 +454,16 @@
 </div>
 
 <script>
+/* ================= CONFIG ================= */
 const DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1djCug4BgGpqOjbGmsqFQIwO8BN6w-ZGG";
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vThtKDovGj-ADJfpxmf-wzGnIV9EunqDjx065wpvXgcSDaHgUhbNnVft72hIE9O0x64_LBx8u13Q9IU/pub?output=csv";
 const EDT_FALLBACK_COL_INDEX = 1;
 
+/* ================= UI ================= */
 function showBanner(html){ const el=document.getElementById("banner"); el.style.display="block"; el.innerHTML=html; }
 function hideBanner(){ const el=document.getElementById("banner"); el.style.display="none"; el.innerHTML=""; }
 
+/* ================= Helpers ================= */
 function normalizeHeader(h){
   return String(h||"").trim().toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
@@ -526,6 +537,7 @@ function inferStatus(row){
   return "Não iniciada";
 }
 
+/* ================= Column mapping ================= */
 const ALIASES = {
   edt: ["edt","eap","wbs","outline","estrutura","estrutura analitica","estrutura analítica"],
   activity: ["atividade","nome","tarefa","task"],
@@ -552,7 +564,7 @@ function mapColumns(headers){
   return idx;
 }
 
-/* EDT tree */
+/* ================= EDT Tree ================= */
 function edtParts(edt){
   const s = String(edt||"").trim();
   if(!s) return [];
@@ -619,8 +631,10 @@ function computeVisible(tree){
   return visible;
 }
 
+/* ================= STATE ================= */
 let STATE = { allTasks: [], tree: null, visibleTasks: [], filteredTasks: [], zoom:"day" };
 
+/* ================= Filters ================= */
 function applyFilters(){
   const q = document.getElementById("search").value.trim().toLowerCase();
   const fs = document.getElementById("filterStatus").value;
@@ -653,15 +667,18 @@ function applyFilters(){
     return okQ && okS && okR && okPmin && okPmax && okD1 && okD2;
   });
 }
+
+/* ================= Rendering ================= */
 function refreshView(){
   if(!STATE.tree) return;
   STATE.visibleTasks = computeVisible(STATE.tree);
   applyFilters();
   renderGrid();
   renderGantt();
+  requestAnimationFrame(calibrateRowAlignment);
 }
 
-/* Grid */
+/* Grid render */
 function renderGrid(){
   const tb=document.getElementById("gridBody");
   tb.innerHTML="";
@@ -736,7 +753,7 @@ function renderGrid(){
   }
 }
 
-/* Gantt */
+/* Gantt helpers */
 function getMinMaxDates(tasks){
   let min=tasks[0].start, max=tasks[0].finish;
   for(const t of tasks){ if(t.start<min) min=t.start; if(t.finish>max) max=t.finish; }
@@ -894,6 +911,7 @@ function renderGantt(){
   monthsRow.appendChild(mcell);
 
   const bodyWrap=document.createElement("div");
+  bodyWrap.className = "ganttWrapCalibrated";
   bodyWrap.style.width=totalW+"px";
   bodyWrap.style.position="relative";
 
@@ -959,11 +977,34 @@ function renderGantt(){
   setupScrollSync(totalW);
   renderTodayLine(min, unitW, unitDays);
 
-  // garantir header posicionado no horizontal atual
   const gv = document.getElementById("ganttBodyViewport");
   const x = gv.scrollLeft;
   monthsRow.style.transform = `translateX(${-x}px)`;
   daysRow.style.transform = `translateX(${-x}px)`;
+}
+
+/* ==== Calibração: casamento 100% (subpixel/zoom) ==== */
+function calibrateRowAlignment(){
+  const gridBody = document.getElementById("gridBody");
+  const ganttBody = document.getElementById("ganttBody");
+
+  const firstTr = gridBody?.querySelector("tr");
+  const firstGanttRow = ganttBody?.querySelector(".ganttRow");
+
+  if(!firstTr || !firstGanttRow) return;
+
+  // 1) trava rowH pelo valor real do TR
+  const trH = Math.round(firstTr.getBoundingClientRect().height);
+  if(trH > 10){
+    document.documentElement.style.setProperty("--rowH", trH + "px");
+  }
+
+  // 2) offset fino entre topo do TR e topo do ganttRow
+  const trTop = firstTr.getBoundingClientRect().top;
+  const gTop  = firstGanttRow.getBoundingClientRect().top;
+
+  const delta = Math.round(trTop - gTop);
+  document.documentElement.style.setProperty("--ganttYOffset", delta + "px");
 }
 
 /* Actions */
@@ -988,6 +1029,7 @@ function setupFilterToggle(){
     collapsed=!collapsed;
     ctr.classList.toggle("collapsed", collapsed);
     btn.textContent = collapsed ? "Maximizar" : "Minimizar";
+    requestAnimationFrame(calibrateRowAlignment);
   });
 }
 
@@ -995,12 +1037,14 @@ function setupSplitter(){
   const splitter = document.getElementById("splitter");
   const grid = document.getElementById("grid");
   let dragging=false;
+
   splitter.addEventListener("mousedown", (e)=>{
     dragging=true;
     document.body.style.cursor="col-resize";
     document.body.style.userSelect="none";
     e.preventDefault();
   });
+
   window.addEventListener("mousemove", (e)=>{
     if(!dragging) return;
     const rect = grid.getBoundingClientRect();
@@ -1009,12 +1053,15 @@ function setupSplitter(){
     const maxW = Math.min(1050, rect.width - 360);
     w = Math.max(minW, Math.min(maxW, w));
     grid.style.setProperty("--leftW", w + "px");
+    requestAnimationFrame(calibrateRowAlignment);
   });
+
   window.addEventListener("mouseup", ()=>{
     if(!dragging) return;
     dragging=false;
     document.body.style.cursor="";
     document.body.style.userSelect="";
+    requestAnimationFrame(calibrateRowAlignment);
   });
 }
 
@@ -1096,11 +1143,18 @@ document.getElementById("dtEnd").addEventListener("change", refreshView);
 document.getElementById("pctMin").addEventListener("input", refreshView);
 document.getElementById("pctMax").addEventListener("input", refreshView);
 document.getElementById("resFilter").addEventListener("input", refreshView);
-document.getElementById("zoom").addEventListener("change", ()=>{ STATE.zoom = document.getElementById("zoom").value; renderGantt(); });
+
+document.getElementById("zoom").addEventListener("change", ()=>{
+  STATE.zoom = document.getElementById("zoom").value;
+  renderGantt();
+  requestAnimationFrame(calibrateRowAlignment);
+});
 
 document.getElementById("expandAll").addEventListener("click", expandAll);
 document.getElementById("collapseAll").addEventListener("click", collapseAll);
 document.getElementById("clearFilters").addEventListener("click", clearFilters);
+
+window.addEventListener("resize", ()=> requestAnimationFrame(calibrateRowAlignment));
 
 /* Boot */
 setupFilterToggle();
