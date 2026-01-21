@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Projeto São Mateus – Cronograma (Gantt)</title>
+  <title>Projeto São Mateus – Cronograma</title>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
@@ -13,8 +13,9 @@
       --shadow:0 10px 30px rgba(0,0,0,.35); --radius:14px;
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
 
+      /* 1 fonte de verdade */
       --rowH: 40px;
-      --gHdrRowH: 34px; /* altura de cada faixa do header (Mês e Dias) */
+      --hdrH: 34px; /* cada faixa do header (Mês e Dias) */
     }
     *{ box-sizing:border-box; }
     body{
@@ -33,7 +34,7 @@
       overflow:hidden;
     }
 
-    /* HEADER TOP */
+    /* TOP */
     .topbar{
       display:grid;
       grid-template-columns: 1fr auto;
@@ -41,7 +42,7 @@
       align-items:start;
       min-height:0;
     }
-    .title h1{ margin:0; font-size:18px; letter-spacing:.2px; font-weight:700; line-height:1.2; }
+    .title h1{ margin:0; font-size:18px; font-weight:700; line-height:1.2; }
 
     .filtersShell{ display:flex; align-items:flex-start; justify-content:flex-end; gap:10px; min-width:0; }
     .filtersToggle{
@@ -98,7 +99,6 @@
       font-size:12.5px;
       display:none;
       line-height:1.35;
-      min-height:0;
     }
     .banner strong{ color:#ffd27a; }
 
@@ -122,17 +122,17 @@
     }
 
     /* SCROLLBARS */
-    .leftBody::-webkit-scrollbar, .ganttViewport::-webkit-scrollbar, .hScrollBar::-webkit-scrollbar{
+    .leftBody::-webkit-scrollbar, .ganttBodyViewport::-webkit-scrollbar, .hScrollBar::-webkit-scrollbar{
       height: 12px; width: 12px;
     }
-    .leftBody::-webkit-scrollbar-thumb, .ganttViewport::-webkit-scrollbar-thumb, .hScrollBar::-webkit-scrollbar-thumb{
+    .leftBody::-webkit-scrollbar-thumb, .ganttBodyViewport::-webkit-scrollbar-thumb, .hScrollBar::-webkit-scrollbar-thumb{
       background: rgba(255,255,255,.22); border-radius: 10px;
     }
-    .leftBody::-webkit-scrollbar-track, .ganttViewport::-webkit-scrollbar-track, .hScrollBar::-webkit-scrollbar-track{
+    .leftBody::-webkit-scrollbar-track, .ganttBodyViewport::-webkit-scrollbar-track, .hScrollBar::-webkit-scrollbar-track{
       background: rgba(255,255,255,.07);
     }
 
-    /* ========= LEFT (header fora do scroll) ========= */
+    /* LEFT (header fora do scroll vertical) */
     .leftPane{
       background:rgba(0,0,0,.08);
       min-height:0;
@@ -140,27 +140,19 @@
       flex-direction:column;
       overflow:hidden;
     }
-
     .leftHeader{
       background:rgba(10,18,32,.96);
       border-bottom:1px solid var(--line);
     }
     .leftHeaderTop{
-      height:var(--gHdrRowH);
+      height:var(--hdrH);
       border-bottom:1px solid rgba(255,255,255,.08);
-      display:flex;
-      align-items:center;
-      padding:0 10px;
-      color:transparent; /* placeholder: não mostra texto */
-      user-select:none;
     }
     .leftHeaderCols{
-      height:var(--gHdrRowH);
+      height:var(--hdrH);
       display:grid;
       grid-template-columns: 92px 1fr 120px 90px 95px 95px 1fr;
       align-items:center;
-      gap:0;
-      padding:0;
       color:var(--muted);
       font-size:12px;
       font-weight:600;
@@ -174,14 +166,9 @@
     }
     .leftHeaderCols > div:last-child{ border-right:none; }
 
-    .leftBody{
-      flex:1;
-      min-height:0;
-      overflow:auto; /* SCROLL VERTICAL AQUI */
-    }
+    .leftBody{ flex:1; min-height:0; overflow:auto; }
 
     table{ width:100%; border-collapse:collapse; }
-    /* sem thead */
     tbody tr{ height: var(--rowH); }
     tbody td{
       border-bottom:1px solid rgba(255,255,255,.06);
@@ -192,7 +179,6 @@
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      max-width:340px;
     }
     tbody tr:hover td{ background:rgba(90,167,255,.08); }
 
@@ -232,7 +218,7 @@
     .taskName{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .isParent .taskName{ font-weight:700; letter-spacing:.1px; }
 
-    /* SPLITTER VERTICAL */
+    /* SPLITTER */
     .splitter{
       background:rgba(255,255,255,.05);
       border-left:1px solid rgba(255,255,255,.10);
@@ -242,33 +228,31 @@
     }
     .splitter:before{
       content:"";
-      position:absolute;
-      top:0; bottom:0;
-      left:50%;
-      width:2px;
-      transform:translateX(-1px);
+      position:absolute; top:0; bottom:0;
+      left:50%; width:2px; transform:translateX(-1px);
       background:rgba(255,255,255,.12);
     }
     .splitter:hover{ background:rgba(255,255,255,.08); }
 
-    /* ========= RIGHT (GANTT) ========= */
-    .rightPane{ min-height:0; display:flex; flex-direction:column; overflow:hidden; }
-    .ganttViewport{
-      flex:1; min-height:0;
-      overflow:auto;
-      position:relative;
-      background:rgba(0,0,0,.02);
-    }
+    /* RIGHT (header fora do scroll vertical) */
+    .rightPane{ min-height:0; display:flex; flex-direction:column; overflow:hidden; background:rgba(0,0,0,.02); }
 
-    .ganttHeader{
-      position:sticky; top:0;
-      z-index:6;
+    .rightHeader{
       background:rgba(10,18,32,.96);
       border-bottom:1px solid var(--line);
+      overflow:hidden; /* sem scroll aqui */
     }
-    .ganttHeader .months{ display:flex; height:var(--gHdrRowH); border-bottom:1px solid rgba(255,255,255,.08); }
-    .ganttHeader .days{ display:flex; height:var(--gHdrRowH); }
-
+    .rightHeader .months{
+      height:var(--hdrH);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;
+      will-change:transform;
+    }
+    .rightHeader .days{
+      height:var(--hdrH);
+      display:flex;
+      will-change:transform;
+    }
     .cell{
       flex:0 0 auto;
       border-right:1px solid rgba(255,255,255,.06);
@@ -282,6 +266,12 @@
     }
     .cell.month{ font-weight:600; color:var(--text); background:rgba(255,255,255,.03); }
 
+    .ganttBodyViewport{
+      flex:1;
+      min-height:0;
+      overflow:auto; /* scroll vertical + horizontal aqui */
+      position:relative;
+    }
     .ganttBody{ position:relative; }
 
     .ganttRow{
@@ -321,17 +311,12 @@
       position:absolute; top:0; bottom:0;
       width:2px;
       background:rgba(255,255,255,.38);
-      box-shadow:0 0 0 1px rgba(0,0,0,.25);
       pointer-events:none;
       z-index:4;
     }
     .todayTag{
-      position:absolute;
-      top:6px;
-      transform:translateX(-50%);
-      font-size:11px;
-      padding:2px 6px;
-      border-radius:999px;
+      position:absolute; top:6px; transform:translateX(-50%);
+      font-size:11px; padding:2px 6px; border-radius:999px;
       background:rgba(255,255,255,.10);
       border:1px solid rgba(255,255,255,.18);
       color:rgba(255,255,255,.92);
@@ -371,52 +356,42 @@
       .panel{ margin-top:10px; }
       .grid{ grid-template-columns:1fr; }
       .splitter{ display:none; }
-      .leftHeaderTop{ display:none; } /* em mobile simplifica */
+      .leftHeaderTop{ display:none; }
     }
   </style>
 </head>
 
 <body>
-<div class="wrap" id="wrap">
+<div class="wrap">
   <div class="topbar">
-    <div class="title">
-      <h1>Projeto São Mateus – Cronograma</h1>
-    </div>
+    <div class="title"><h1>Projeto São Mateus – Cronograma</h1></div>
 
     <div class="filtersShell">
       <button id="filtersToggle" class="filtersToggle">Minimizar</button>
-
       <div id="controls" class="controls">
         <input id="search" class="input" style="width:220px" placeholder="Buscar atividade, status, recurso..." />
-
-        <select id="filterStatus" class="select" title="Filtrar por status">
+        <select id="filterStatus" class="select">
           <option value="">Todos os status</option>
           <option value="Concluída">Concluída</option>
           <option value="Atrasada">Atrasada</option>
           <option value="Em andamento">Em andamento</option>
           <option value="Não iniciada">Não iniciada</option>
         </select>
-
         <input id="dtStart" class="input" type="date" title="Período (a partir de)" />
         <input id="dtEnd" class="input" type="date" title="Período (até)" />
-
         <input id="pctMin" class="input" type="number" min="0" max="100" placeholder="% min" style="width:88px" />
         <input id="pctMax" class="input" type="number" min="0" max="100" placeholder="% max" style="width:88px" />
-
         <input id="resFilter" class="input" placeholder="Filtrar por recurso..." style="width:190px" />
-
         <select id="zoom" class="select" title="Zoom do Gantt">
           <option value="day">Zoom: Dia</option>
           <option value="week">Zoom: Semana</option>
           <option value="biweek">Zoom: 2 Semanas</option>
           <option value="month">Zoom: Mês</option>
         </select>
-
-        <button id="expandAll" class="btn" title="Expandir tudo">Expandir</button>
-        <button id="collapseAll" class="btn" title="Recolher tudo">Recolher</button>
-        <button id="clearFilters" class="btn" title="Limpar filtros">Limpar</button>
-        <button id="reload" class="btn primary" title="Recarregar">Recarregar</button>
-
+        <button id="expandAll" class="btn">Expandir</button>
+        <button id="collapseAll" class="btn">Recolher</button>
+        <button id="clearFilters" class="btn">Limpar</button>
+        <button id="reload" class="btn primary">Recarregar</button>
         <span class="pill"><span class="dot"></span><span id="kpi">Carregando...</span></span>
       </div>
     </div>
@@ -430,31 +405,26 @@
       <!-- LEFT -->
       <div class="leftPane">
         <div class="leftHeader">
-          <div class="leftHeaderTop">.</div>
+          <div class="leftHeaderTop"></div>
           <div class="leftHeaderCols">
-            <div>EDT</div>
-            <div>Atividade</div>
-            <div>Status</div>
-            <div>% Concluída</div>
-            <div>Início</div>
-            <div>Término</div>
-            <div>Recursos</div>
+            <div>EDT</div><div>Atividade</div><div>Status</div><div>% Concluída</div><div>Início</div><div>Término</div><div>Recursos</div>
           </div>
         </div>
-
         <div class="leftBody" id="leftBody">
-          <table>
-            <tbody id="gridBody"></tbody>
-          </table>
+          <table><tbody id="gridBody"></tbody></table>
         </div>
       </div>
 
-      <div class="splitter" id="splitter" title="Arraste para ajustar a largura da grade"></div>
+      <div class="splitter" id="splitter"></div>
 
       <!-- RIGHT -->
       <div class="rightPane">
-        <div class="ganttViewport" id="ganttViewport">
-          <div id="ganttHeader" class="ganttHeader"></div>
+        <div class="rightHeader" id="rightHeader">
+          <div class="months" id="monthsRow"></div>
+          <div class="days" id="daysRow"></div>
+        </div>
+
+        <div class="ganttBodyViewport" id="ganttBodyViewport">
           <div id="ganttBody" class="ganttBody"></div>
         </div>
 
@@ -476,12 +446,10 @@
 </div>
 
 <script>
-/* ================= CONFIG ================= */
 const DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1djCug4BgGpqOjbGmsqFQIwO8BN6w-ZGG";
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vThtKDovGj-ADJfpxmf-wzGnIV9EunqDjx065wpvXgcSDaHgUhbNnVft72hIE9O0x64_LBx8u13Q9IU/pub?output=csv";
 const EDT_FALLBACK_COL_INDEX = 1;
 
-/* UI */
 function showBanner(html){ const el=document.getElementById("banner"); el.style.display="block"; el.innerHTML=html; }
 function hideBanner(){ const el=document.getElementById("banner"); el.style.display="none"; el.innerHTML=""; }
 
@@ -558,7 +526,6 @@ function inferStatus(row){
   return "Não iniciada";
 }
 
-/* Column mapping */
 const ALIASES = {
   edt: ["edt","eap","wbs","outline","estrutura","estrutura analitica","estrutura analítica"],
   activity: ["atividade","nome","tarefa","task"],
@@ -652,10 +619,8 @@ function computeVisible(tree){
   return visible;
 }
 
-/* STATE */
 let STATE = { allTasks: [], tree: null, visibleTasks: [], filteredTasks: [], zoom:"day" };
 
-/* Filters */
 function applyFilters(){
   const q = document.getElementById("search").value.trim().toLowerCase();
   const fs = document.getElementById("filterStatus").value;
@@ -696,7 +661,7 @@ function refreshView(){
   renderGantt();
 }
 
-/* Grid render */
+/* Grid */
 function renderGrid(){
   const tb=document.getElementById("gridBody");
   tb.innerHTML="";
@@ -771,7 +736,7 @@ function renderGrid(){
   }
 }
 
-/* Gantt helpers */
+/* Gantt */
 function getMinMaxDates(tasks){
   let min=tasks[0].start, max=tasks[0].finish;
   for(const t of tasks){ if(t.start<min) min=t.start; if(t.finish>max) max=t.finish; }
@@ -784,7 +749,10 @@ function daysBetween(a,b){
   return Math.round((db-da)/MS);
 }
 function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
-
+function monthLabel(d){
+  const m=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"][d.getMonth()];
+  return `${m}/${String(d.getFullYear()).slice(-2)}`;
+}
 function zoomConfig(z){
   if(z==="day")    return { unitDays:1,  unitW:26, label:"Dia" };
   if(z==="week")   return { unitDays:7,  unitW:52, label:"Semana" };
@@ -792,13 +760,8 @@ function zoomConfig(z){
   if(z==="month")  return { unitDays:30, unitW:90, label:"Mês" };
   return { unitDays:1, unitW:26, label:"Dia" };
 }
-function monthLabel(d){
-  const m=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"][d.getMonth()];
-  return `${m}/${String(d.getFullYear()).slice(-2)}`;
-}
 function renderTodayLine(min, unitW, unitDays){
   const body = document.getElementById("ganttBody");
-  if(!body) return;
   body.querySelectorAll(".todayLine,.todayTag").forEach(n=>n.remove());
 
   const today = new Date();
@@ -821,13 +784,13 @@ function renderTodayLine(min, unitW, unitDays){
   body.appendChild(tag);
 }
 
-/* Scroll sync (CORPOS) */
 function setupScrollSync(totalWidthPx){
-  const left = document.getElementById("leftBody");      // agora é o corpo do grid
-  const gv = document.getElementById("ganttViewport");   // corpo do gantt
+  const left = document.getElementById("leftBody");
+  const gv = document.getElementById("ganttBodyViewport");
   const hs = document.getElementById("hScrollBar");
   const inner = document.getElementById("hScrollInner");
-  if(!left || !gv || !hs || !inner) return;
+  const monthsRow = document.getElementById("monthsRow");
+  const daysRow = document.getElementById("daysRow");
 
   inner.style.width = Math.max(0, totalWidthPx) + "px";
 
@@ -847,9 +810,15 @@ function setupScrollSync(totalWidthPx){
       left.scrollTop = gv.scrollTop;
       lockV = false;
     }
+
     if(lockH) return;
     lockH = true;
     hs.scrollLeft = gv.scrollLeft;
+
+    const x = gv.scrollLeft;
+    monthsRow.style.transform = `translateX(${-x}px)`;
+    daysRow.style.transform = `translateX(${-x}px)`;
+
     lockH = false;
   };
 
@@ -857,18 +826,25 @@ function setupScrollSync(totalWidthPx){
     if(lockH) return;
     lockH = true;
     gv.scrollLeft = hs.scrollLeft;
+
+    const x = gv.scrollLeft;
+    monthsRow.style.transform = `translateX(${-x}px)`;
+    daysRow.style.transform = `translateX(${-x}px)`;
+
     lockH = false;
   };
 }
 
 function renderGantt(){
-  const header=document.getElementById("ganttHeader");
-  const body=document.getElementById("ganttBody");
-  header.innerHTML=""; body.innerHTML="";
+  const monthsRow=document.getElementById("monthsRow");
+  const daysRow=document.getElementById("daysRow");
+  const ganttBody=document.getElementById("ganttBody");
+  monthsRow.innerHTML=""; daysRow.innerHTML=""; ganttBody.innerHTML="";
 
   const tasks=STATE.filteredTasks;
   if(tasks.length===0){
-    header.innerHTML=`<div class="cell" style="padding:14px 10px">Sem itens para exibir.</div>`;
+    monthsRow.innerHTML=`<div class="cell month" style="width:240px">Sem itens</div>`;
+    daysRow.innerHTML=`<div class="cell" style="width:240px">—</div>`;
     setupScrollSync(0);
     return;
   }
@@ -884,24 +860,21 @@ function renderGantt(){
   const totalUnits = Math.ceil((daysBetween(min,max)+1)/unitDays);
   const totalW = totalUnits * unitW;
 
-  const monthsRow=document.createElement("div");
-  monthsRow.className="months"; monthsRow.style.width=totalW+"px";
-  const daysRow=document.createElement("div");
-  daysRow.className="days"; daysRow.style.width=totalW+"px";
+  monthsRow.style.width = totalW + "px";
+  daysRow.style.width = totalW + "px";
 
   let curMonth = addDays(min,0).getMonth();
   let span=0, startIndex=0;
 
   for(let u=0;u<totalUnits;u++){
     const d = addDays(min, u*unitDays);
+
     const c=document.createElement("div");
     c.className="cell"; c.style.width=unitW+"px";
-
     if(unitDays===1) c.textContent=String(d.getDate()).padStart(2,"0");
     else if(unitDays===7) c.textContent=`S${u+1}`;
     else if(unitDays===14) c.textContent=`S${(u*2)+1}-${(u*2)+2}`;
     else c.textContent=monthLabel(d);
-
     daysRow.appendChild(c);
 
     if(d.getMonth()===curMonth){ span++; }
@@ -919,8 +892,6 @@ function renderGantt(){
   mcell.style.width=(span*unitW)+"px";
   mcell.textContent=monthLabel(addDays(min, startIndex*unitDays));
   monthsRow.appendChild(mcell);
-
-  header.append(monthsRow, daysRow);
 
   const bodyWrap=document.createElement("div");
   bodyWrap.style.width=totalW+"px";
@@ -972,7 +943,7 @@ function renderGantt(){
     bodyWrap.appendChild(row);
   });
 
-  body.appendChild(bodyWrap);
+  ganttBody.appendChild(bodyWrap);
 
   const totalAll = STATE.allTasks.length;
   const totalVisible = STATE.visibleTasks.length;
@@ -982,25 +953,22 @@ function renderGantt(){
 
   document.getElementById("kpi").textContent =
     `Itens: ${totalFiltered}/${totalVisible} (visíveis) | Total: ${totalAll} | Concluídas: ${concl} | Atrasadas: ${atras}`;
-
   document.getElementById("meta").textContent =
     `Período: ${fmtDate(min)} → ${fmtDate(max)} | Zoom: ${zoomConfig(STATE.zoom).label}`;
 
   setupScrollSync(totalW);
   renderTodayLine(min, unitW, unitDays);
+
+  // garantir header posicionado no horizontal atual
+  const gv = document.getElementById("ganttBodyViewport");
+  const x = gv.scrollLeft;
+  monthsRow.style.transform = `translateX(${-x}px)`;
+  daysRow.style.transform = `translateX(${-x}px)`;
 }
 
 /* Actions */
-function expandAll(){
-  if(!STATE.tree) return;
-  for(const t of STATE.allTasks){ if(t.hasChildren) t.isCollapsed=false; }
-  refreshView();
-}
-function collapseAll(){
-  if(!STATE.tree) return;
-  for(const t of STATE.allTasks){ if(t.hasChildren) t.isCollapsed=true; }
-  refreshView();
-}
+function expandAll(){ if(!STATE.tree) return; for(const t of STATE.allTasks){ if(t.hasChildren) t.isCollapsed=false; } refreshView(); }
+function collapseAll(){ if(!STATE.tree) return; for(const t of STATE.allTasks){ if(t.hasChildren) t.isCollapsed=true; } refreshView(); }
 function clearFilters(){
   document.getElementById("search").value = "";
   document.getElementById("filterStatus").value = "";
@@ -1012,36 +980,27 @@ function clearFilters(){
   refreshView();
 }
 
-/* Minimizar */
 function setupFilterToggle(){
   const btn = document.getElementById("filtersToggle");
   const ctr = document.getElementById("controls");
-  if(!btn || !ctr) return;
-
   let collapsed=false;
   btn.addEventListener("click", ()=>{
     collapsed=!collapsed;
     ctr.classList.toggle("collapsed", collapsed);
     btn.textContent = collapsed ? "Maximizar" : "Minimizar";
-    requestAnimationFrame(()=> renderGantt());
   });
 }
 
-/* Splitter vertical */
 function setupSplitter(){
   const splitter = document.getElementById("splitter");
   const grid = document.getElementById("grid");
-  if(!splitter || !grid) return;
-
   let dragging=false;
-
   splitter.addEventListener("mousedown", (e)=>{
     dragging=true;
     document.body.style.cursor="col-resize";
     document.body.style.userSelect="none";
     e.preventDefault();
   });
-
   window.addEventListener("mousemove", (e)=>{
     if(!dragging) return;
     const rect = grid.getBoundingClientRect();
@@ -1051,7 +1010,6 @@ function setupSplitter(){
     w = Math.max(minW, Math.min(maxW, w));
     grid.style.setProperty("--leftW", w + "px");
   });
-
   window.addEventListener("mouseup", ()=>{
     if(!dragging) return;
     dragging=false;
@@ -1114,7 +1072,6 @@ async function load(){
     }
 
     if(tasks.length === 0) throw new Error("Nenhuma linha válida.");
-
     tasks.sort((a,b)=> edtSortKey(a.edt).localeCompare(edtSortKey(b.edt)));
 
     STATE.allTasks = tasks;
@@ -1139,11 +1096,7 @@ document.getElementById("dtEnd").addEventListener("change", refreshView);
 document.getElementById("pctMin").addEventListener("input", refreshView);
 document.getElementById("pctMax").addEventListener("input", refreshView);
 document.getElementById("resFilter").addEventListener("input", refreshView);
-
-document.getElementById("zoom").addEventListener("change", () => {
-  STATE.zoom = document.getElementById("zoom").value;
-  renderGantt();
-});
+document.getElementById("zoom").addEventListener("change", ()=>{ STATE.zoom = document.getElementById("zoom").value; renderGantt(); });
 
 document.getElementById("expandAll").addEventListener("click", expandAll);
 document.getElementById("collapseAll").addEventListener("click", collapseAll);
